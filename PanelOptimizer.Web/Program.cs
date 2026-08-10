@@ -1,32 +1,36 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
+using PanelOptimizer.Web.Components;
 
-var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
-
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
-
-var app = builder.Build();
-
-if (!app.Environment.IsDevelopment())
+namespace PanelOptimizer.Web
 {
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+
+            // Add services to the container.
+            builder.Services.AddRazorComponents()
+                .AddInteractiveServerComponents();
+
+            var app = builder.Build();
+
+            // Configure the HTTP request pipeline.
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler("/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+
+            app.UseStaticFiles();
+            app.UseAntiforgery();
+
+            app.MapRazorComponents<App>()
+                .AddInteractiveServerRenderMode();
+
+            app.Run();
+        }
+    }
 }
-app.MapRazorComponents<Program>()
-    .AddInteractiveServerRenderMode();
-
-app.UseHttpsRedirection();
-
-app.UseStaticFiles();
-
-app.UseRouting();
-
-app.MapBlazorHub();
-app.MapFallbackToPage("/_Host");
-
-
-
-app.Run();
