@@ -5,6 +5,8 @@ VisualStudioVersion = 17.12.35514.174 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PanelOptimizer.Core", "PanelOptimizer.Core\PanelOptimizer.Core.csproj", "{E63F852F-D4FE-4EDD-B6ED-694AFBC2D94D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PanelOptimizer.Web", "PanelOptimizer.Web\PanelOptimizer.Web.csproj", "{C46507DE-A2EB-46EE-83F8-0DF402CF1711}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{E63F852F-D4FE-4EDD-B6ED-694AFBC2D94D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E63F852F-D4FE-4EDD-B6ED-694AFBC2D94D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E63F852F-D4FE-4EDD-B6ED-694AFBC2D94D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C46507DE-A2EB-46EE-83F8-0DF402CF1711}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C46507DE-A2EB-46EE-83F8-0DF402CF1711}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C46507DE-A2EB-46EE-83F8-0DF402CF1711}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C46507DE-A2EB-46EE-83F8-0DF402CF1711}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
