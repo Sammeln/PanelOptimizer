@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGR_PanelOptimizer.Infrastr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGR_PanelOptimizer.Web", "AGR_PanelOptimizer.Web\AGR_PanelOptimizer.Web.csproj", "{678CF71D-4A8A-4F21-A1B7-A3885D348687}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{38A77B55-E18B-4A60-9F19-02D5B6B18A5D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{678CF71D-4A8A-4F21-A1B7-A3885D348687}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{678CF71D-4A8A-4F21-A1B7-A3885D348687}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{678CF71D-4A8A-4F21-A1B7-A3885D348687}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38A77B55-E18B-4A60-9F19-02D5B6B18A5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38A77B55-E18B-4A60-9F19-02D5B6B18A5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38A77B55-E18B-4A60-9F19-02D5B6B18A5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38A77B55-E18B-4A60-9F19-02D5B6B18A5D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
