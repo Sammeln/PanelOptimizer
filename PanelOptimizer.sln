@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PanelOptimizer.Core", "Pane
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PanelOptimizer.Web", "PanelOptimizer.Web\PanelOptimizer.Web.csproj", "{C46507DE-A2EB-46EE-83F8-0DF402CF1711}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PanelOptimizer.Infrastructure", "PanelOptimizer.Infrastructure\PanelOptimizer.Infrastructure.csproj", "{C47DA906-CEFC-4A03-8017-B3117218E3B3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{C46507DE-A2EB-46EE-83F8-0DF402CF1711}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C46507DE-A2EB-46EE-83F8-0DF402CF1711}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C46507DE-A2EB-46EE-83F8-0DF402CF1711}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C47DA906-CEFC-4A03-8017-B3117218E3B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C47DA906-CEFC-4A03-8017-B3117218E3B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C47DA906-CEFC-4A03-8017-B3117218E3B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C47DA906-CEFC-4A03-8017-B3117218E3B3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
