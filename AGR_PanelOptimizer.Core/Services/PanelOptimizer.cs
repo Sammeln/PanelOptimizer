@@ -1,7 +1,7 @@
-﻿using PanelOptimizer.Core.Interfaces;
-using PanelOptimizer.Core.Models;
+﻿using AGR_PanelOptimizer.Core.Interfaces;
+using AGR_PanelOptimizer.Core.Models;
 
-namespace PanelOptimizer.Core.Services;
+namespace AGR_PanelOptimizer.Core.Services;
 
 public class PanelOptimizer : IPanelOptimizer
 {

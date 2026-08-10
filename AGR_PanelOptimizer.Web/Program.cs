@@ -1,6 +1,8 @@
-using PanelOptimizer.Web.Components;
+using AGR_PanelOptimizer.Web.Components;
+using AGR_PanelOptimizer.Core.Interfaces;
+using AGR_PanelOptimizer.Core.Services; 
 
-namespace PanelOptimizer.Web
+namespace AGR_PanelOptimizer.Web
 {
     public class Program
     {
@@ -12,6 +14,11 @@ namespace PanelOptimizer.Web
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
+
+
+            builder.Services.AddScoped<IPanelOptimizer, PanelOptimizer>();
+
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -22,7 +29,7 @@ namespace PanelOptimizer.Web
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            app.UseHttpsRedirection();s
 
             app.UseStaticFiles();
             app.UseAntiforgery();

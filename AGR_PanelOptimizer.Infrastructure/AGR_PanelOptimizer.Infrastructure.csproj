@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PanelOptimizer.Core\PanelOptimizer.Core.csproj" />
+    <ProjectReference Include="..\AGR_PanelOptimizer.Core\AGR_PanelOptimizer.Core.csproj" />
   </ItemGroup>
 
 </Project>

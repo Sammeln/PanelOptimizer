@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PanelOptimizer.Core.Models;
+namespace AGR_PanelOptimizer.Core.Models;
 
 public class PanelSettings
 {

@@ -1,4 +1,4 @@
-﻿namespace PanelOptimizer.Core.Models;
+﻿namespace AGR_PanelOptimizer.Core.Models;
 
 public class ValveOrder
 {
