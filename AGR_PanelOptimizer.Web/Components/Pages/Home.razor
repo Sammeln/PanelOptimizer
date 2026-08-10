@@ -2,6 +2,7 @@
 
 @using AGR_PanelOptimizer.Core.Models
 @using AGR_PanelOptimizer.Core.Interfaces
+@using AGR_PanelOptimizer.Web.Components.Order
 
 @inject IPanelOptimizer Optimizer
 
@@ -46,7 +47,7 @@
 
     private bool Calculated;
 
-    private void Calculate()
+    public void Calculate()
     {
         var result = Optimizer.Calculate(
             Settings,

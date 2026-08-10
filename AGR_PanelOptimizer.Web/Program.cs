@@ -29,7 +29,7 @@ namespace AGR_PanelOptimizer.Web
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();s
+            app.UseHttpsRedirection();
 
             app.UseStaticFiles();
             app.UseAntiforgery();
