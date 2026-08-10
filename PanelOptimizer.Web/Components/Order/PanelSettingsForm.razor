@@ -1,0 +1,30 @@
+﻿@using PanelOptimizer.Core.Models
+
+<div class="settings-form">
+    <h2>Исходная панель</h2>
+
+    <div class="settings-grid">
+        <div class="form-field">
+            <label>Длина, мм</label>
+            <input type="number"
+                   @bind="Settings.PanelLength" />
+        </div>
+
+        <div class="form-field">
+            <label>Высота, мм</label>
+            <input type="number"
+                   @bind="Settings.PanelHeight" />
+        </div>
+
+        <div class="form-field">
+            <label>Минимальный остаток, мм</label>
+            <input type="number"
+                   @bind="Settings.MinimumOffcut" />
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public PanelSettings Settings { get; set; } = null!;
+}

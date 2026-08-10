@@ -1,7 +1,57 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+@using PanelOptimizer.Core.Models
+@using PanelOptimizer.Core.Interfaces
 
-<h1>Hello, world!</h1>
+@inject IPanelOptimizer Optimizer
 
-Welcome to your new app.
+<PageTitle>Panel Optimizer</PageTitle>
+
+<div class="page-container">
+
+    <header class="page-header">
+        <h1>Panel Optimizer</h1>
+        <p>Расчет и визуализация раскроя сэндвич-панелей</p>
+    </header>
+
+    <PanelSettingsForm Settings="Settings" />
+
+    <ValveOrderGrid Orders="Orders" />
+
+    <div class="actions">
+        <button type="button"
+                class="button button-primary"
+                @onclick="Calculate">
+            Рассчитать
+        </button>
+    </div>
+
+    @if (Calculated)
+    {
+        <div class="result-message">
+            Расчет выполнен.
+        </div>
+    }
+
+</div>
+
+@code {
+
+    private PanelSettings Settings { get; } = new();
+
+    private List<ValveOrder> Orders { get; } =
+    [
+        new ValveOrder()
+    ];
+
+    private bool Calculated;
+
+    private void Calculate()
+    {
+        var result = Optimizer.Calculate(
+            Settings,
+            Orders);
+
+        Calculated = true;
+    }
+}

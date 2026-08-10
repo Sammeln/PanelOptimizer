@@ -1,0 +1,69 @@
+﻿@using PanelOptimizer.Core.Models
+
+<div class="orders">
+    <div class="orders-header">
+        <h2>Клапаны</h2>
+
+        <button type="button"
+                class="button button-secondary"
+                @onclick="AddOrder">
+            + Добавить
+        </button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Высота, мм</th>
+                <th>Ширина, мм</th>
+                <th>Количество</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var order in Orders)
+            {
+                    <tr>
+                        <td>
+                            <input type="number"
+                                   @bind="order.Height" />
+                        </td>
+
+                        <td>
+                            <input type="number"
+                                   @bind="order.Width" />
+                        </td>
+
+                        <td>
+                            <input type="number"
+                                   @bind="order.Quantity" />
+                        </td>
+
+                        <td>
+                            <button type="button"
+                                    class="delete-button"
+                                    @onclick="() => RemoveOrder(order)">
+                                ×
+                            </button>
+                        </td>
+                    </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IList<ValveOrder> Orders { get; set; } = null!;
+
+    private void AddOrder()
+    {
+        Orders.Add(new ValveOrder());
+    }
+
+    private void RemoveOrder(ValveOrder order)
+    {
+        Orders.Remove(order);
+    }
+}
