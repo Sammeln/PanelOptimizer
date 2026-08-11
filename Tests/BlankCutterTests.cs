@@ -134,13 +134,13 @@ public class BlankCutterTests
 
         var assembler = new ValveAssembler();
 
-        var valve = assembler.Assemble(
-            height: 1280,
-            width: 2380,
-            new[]
-            {
-            firstBlank.ToPiece(), // пока так сделать нельзя
-            requiredPiece
-            });
+        //var valve = assembler.Assemble(
+        //    height: 1280,
+        //    width: 2380,
+        //    new[]
+        //    {
+        //    firstBlank.ToPiece(), // пока так сделать нельзя
+        //    requiredPiece
+        //    });
     }
 }

@@ -1,0 +1,1452 @@
+﻿--- Содержимое AGR_PanelOptimizer ---
+==============================================================
+
+--- Файл: Class1.cs ---
+==============================================================
+namespace AGR_PanelOptimizer.Infrastructure
+{
+    public class Class1
+    {
+
+    }
+}
+
+
+
+
+--- Файл: Program.cs ---
+==============================================================
+using AGR_PanelOptimizer.Web.Components;
+using AGR_PanelOptimizer.Core.Interfaces;
+using AGR_PanelOptimizer.Core.Services; 
+
+namespace AGR_PanelOptimizer.Web
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+
+            // Add services to the container.
+            builder.Services.AddRazorComponents()
+                .AddInteractiveServerComponents();
+
+
+
+            builder.Services.AddScoped<IPanelOptimizer, PanelOptimizer>();
+
+
+            var app = builder.Build();
+
+            // Configure the HTTP request pipeline.
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler("/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+
+            app.UseStaticFiles();
+            app.UseAntiforgery();
+
+            app.MapRazorComponents<App>()
+                .AddInteractiveServerRenderMode();
+
+            app.Run();
+        }
+    }
+}
+
+
+
+
+--- Файл: BlankCutterTests.cs ---
+==============================================================
+using AGR_PanelOptimizer.Core.Enums;
+using AGR_PanelOptimizer.Core.Models;
+using AGR_PanelOptimizer.Core.Services;
+
+namespace AGR_PanelOptimizer.Core.Tests;
+
+public class BlankCutterTests
+{
+    [Fact]
+    public void Cut_6000mm_Panel_Into_1280mm_Blanks_Returns_4_Blanks()
+    {
+        var panel = new Panel
+        {
+            Length = 6000,
+            Height = 1200
+        };
+
+        var cutter = new BlankCutter();
+
+        var result = cutter.Cut(
+            panel,
+            blankLength: 1280);
+
+        Assert.Equal(4, result.Blanks.Count);
+
+        Assert.All(
+            result.Blanks,
+            blank =>
+            {
+                Assert.Equal(1280, blank.Length);
+                Assert.Equal(1200, blank.Height);
+            });
+    }
+    [Fact]
+    public void Blanks_Have_Correct_Source_Positions()
+    {
+        var panel = new Panel
+        {
+            Length = 6000,
+            Height = 1200
+        };
+
+        var cutter = new BlankCutter();
+
+        var result = cutter.Cut(panel, 1280);
+
+        Assert.Equal(0, result.Blanks[0].SourcePanelPosition);
+        Assert.Equal(2560, result.Blanks[2].SourcePanelPosition);
+        Assert.Equal(3840, result.Blanks[3].SourcePanelPosition);
+        Assert.Equal(1280, result.Blanks[1].SourcePanelPosition);
+    }
+    [Fact]
+    public void Cut_4500mm_Panel_Into_1280mm_Blanks_Returns_3_Blanks()
+    {
+        var panel = new Panel
+        {
+            Length = 4500,
+            Height = 1200
+        };
+
+        var cutter = new BlankCutter();
+
+        var result = cutter.Cut(panel, 1280);
+
+        Assert.Equal(3, result.Blanks.Count);
+    }
+    [Fact]
+    public void Cut_6000mm_Panel_Into_1280mm_Blanks_Leaves_880mm()
+    {
+        var panel = new Panel
+        {
+            Length = 6000,
+            Height = 1200
+        };
+
+        var cutter = new BlankCutter();
+
+        var result = cutter.Cut(panel, 1280);
+
+        Assert.Equal(4, result.Blanks.Count);
+        Assert.Equal(880, result.RemainingLength);
+    }
+    [Fact]
+    public void Cut_4500mm_Panel_Into_1280mm_Blanks_Leaves_660mm()
+    {
+        var panel = new Panel
+        {
+            Length = 4500,
+            Height = 1200
+        };
+
+        var cutter = new BlankCutter();
+
+        var result = cutter.Cut(panel, 1280);
+
+        Assert.Equal(3, result.Blanks.Count);
+        Assert.Equal(660, result.RemainingLength);
+    }
+    [Fact]
+    public void Can_Prepare_1280x2380_Valve_From_6000mm_Panel()
+    {
+        var panel = new Panel
+        {
+            Length = 6000,
+            Height = 1200
+        };
+
+        var blankCutter = new BlankCutter();
+
+        var panelResult = blankCutter.Cut(
+            panel,
+            blankLength: 1280);
+
+        Assert.Equal(4, panelResult.Blanks.Count);
+        Assert.Equal(880, panelResult.RemainingLength);
+
+        var firstBlank = panelResult.Blanks[0];
+
+        var piece = new Piece
+        {
+            Length = 1200,
+            Height = 1280,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        };
+
+        var cutter = new PieceCutter();
+
+        var (requiredPiece, remainingPiece) =
+            cutter.Cut(piece, 1180);
+
+        Assert.Equal(1180, requiredPiece.Length);
+        Assert.Equal(20, remainingPiece.Length);
+
+        var assembler = new ValveAssembler();
+
+        //var valve = assembler.Assemble(
+        //    height: 1280,
+        //    width: 2380,
+        //    new[]
+        //    {
+        //    firstBlank.ToPiece(), // пока так сделать нельзя
+        //    requiredPiece
+        //    });
+    }
+}
+
+
+
+--- Файл: OffcutEvaluatorTests.cs ---
+==============================================================
+using AGR_PanelOptimizer.Core.Models;
+using AGR_PanelOptimizer.Core.Services;
+
+namespace AGR_PanelOptimizer.Core.Tests;
+
+public class OffcutEvaluatorTests
+{
+    [Fact]
+    public void Offcut_Exactly_300mm_Is_Usable()
+    {
+        var piece = new Piece
+        {
+            Length = 300
+        };
+
+        var evaluator = new OffcutEvaluator();
+
+        var result = evaluator.IsUsable(piece, 300);
+
+        Assert.True(result);
+    }
+    [Fact]
+    public void Offcut_Smaller_Than_300mm_Is_Not_Usable()
+    {
+        var piece = new Piece
+        {
+            Length = 299
+        };
+
+        var evaluator = new OffcutEvaluator();
+
+        var result = evaluator.IsUsable(piece, 300);
+
+        Assert.False(result);
+    }
+    [Fact]
+    public void Offcut_400mm_Is_Usable()
+    {
+        var piece = new Piece
+        {
+            Length = 400
+        };
+
+        var evaluator = new OffcutEvaluator();
+
+        var result = evaluator.IsUsable(piece, 300);
+
+        Assert.True(result);
+    }
+    [Fact]
+    public void Offcut_20mm_Is_Not_Usable()
+    {
+        var piece = new Piece
+        {
+            Length = 20
+        };
+
+        var evaluator = new OffcutEvaluator();
+
+        var result = evaluator.IsUsable(piece, 300);
+
+        Assert.False(result);
+    }
+}
+
+
+
+--- Файл: PanelTests.cs ---
+==============================================================
+using AGR_PanelOptimizer.Core.Models;
+
+namespace AGR_PanelOptimizer.Core.Tests;
+
+public class PanelTests
+{
+    [Fact]
+    public void Panel_Can_Have_6000x1200_Dimensions()
+    {
+        var panel = new Panel
+        {
+            Length = 6000,
+            Height = 1200
+        };
+
+        Assert.Equal(6000, panel.Length);
+        Assert.Equal(1200, panel.Height);
+    }
+}
+
+
+
+--- Файл: PieceCutterTests.cs ---
+==============================================================
+using AGR_PanelOptimizer.Core.Enums;
+using AGR_PanelOptimizer.Core.Models;
+using AGR_PanelOptimizer.Core.Services;
+
+namespace AGR_PanelOptimizer.Core.Tests;
+
+public class PieceCutterTests
+{
+    [Fact]
+    public void Cut_800_From_1200_Creates_800_And_400_Pieces()
+    {
+        var source = new Piece
+        {
+            Length = 1200,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        };
+
+        var cutter = new PieceCutter();
+
+        var (requiredPiece, remainingPiece) =
+            cutter.Cut(source, 800);
+
+        Assert.Equal(800, requiredPiece.Length);
+        Assert.Equal(400, remainingPiece.Length);
+
+        Assert.Equal(EdgeType.Tongue, requiredPiece.LeftEdge);
+        Assert.Equal(EdgeType.Cut, requiredPiece.RightEdge);
+
+        Assert.Equal(EdgeType.Cut, remainingPiece.LeftEdge);
+        Assert.Equal(EdgeType.Groove, remainingPiece.RightEdge);
+    }
+
+    [Fact]
+    public void Cut_1180_From_1200_Creates_20mm_Remaining_Piece()
+    {
+        var source = new Piece
+        {
+            Length = 1200,
+            Height = 1280,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        };
+
+        var cutter = new PieceCutter();
+
+        var (requiredPiece, remainingPiece) =
+            cutter.Cut(source, 1180);
+
+        Assert.Equal(1180, requiredPiece.Length);
+        Assert.Equal(20, remainingPiece.Length);
+
+        Assert.Equal(EdgeType.Tongue, requiredPiece.LeftEdge);
+        Assert.Equal(EdgeType.Cut, requiredPiece.RightEdge);
+
+        Assert.Equal(EdgeType.Cut, remainingPiece.LeftEdge);
+        Assert.Equal(EdgeType.Groove, remainingPiece.RightEdge);
+    }
+    public void Cut_Equal_To_Source_Length_Throws()
+    {
+        var source = new Piece
+        {
+            Length = 1200,
+            Height = 1280,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        };
+
+        var cutter = new PieceCutter();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            cutter.Cut(source, 1200));
+    }
+    [Fact]
+    public void Cut_Larger_Than_Source_Length_Throws()
+    {
+        var source = new Piece
+        {
+            Length = 1200,
+            Height = 1280,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        };
+
+        var cutter = new PieceCutter();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            cutter.Cut(source, 1201));
+    }
+    [Fact]
+    public void Cut_Preserves_Piece_Height()
+    {
+        var source = new Piece
+        {
+            Length = 1200,
+            Height = 1280,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        };
+
+        var cutter = new PieceCutter();
+
+        var (requiredPiece, remainingPiece) =
+            cutter.Cut(source, 800);
+
+        Assert.Equal(1280, requiredPiece.Height);
+        Assert.Equal(1280, remainingPiece.Height);
+    }
+   
+}
+
+
+
+--- Файл: ValveAssemblerTests.cs ---
+==============================================================
+using AGR_PanelOptimizer.Core.Enums;
+using AGR_PanelOptimizer.Core.Models;
+using AGR_PanelOptimizer.Core.Services;
+
+namespace AGR_PanelOptimizer.Core.Tests;
+
+public class ValveAssemblerTests
+{
+    [Fact]
+    public void Assemble_1280x2380_With_1200_And_1180_Pieces()
+    {
+        var pieces = new List<Piece>
+        {
+            new()
+            {
+                Length = 1200,
+                Height = 1280,
+                LeftEdge = EdgeType.Tongue,
+                RightEdge = EdgeType.Groove
+            },
+            new()
+            {
+                Length = 1180,
+                Height = 1280,
+                LeftEdge = EdgeType.Tongue,
+                RightEdge = EdgeType.Cut
+            }
+        };
+
+        var assembler = new ValveAssembler();
+
+        var result = assembler.Assemble(
+            height: 1280,
+            width: 2380,
+            pieces);
+
+        Assert.Equal(1280, result.Valve.Height);
+        Assert.Equal(2380, result.Valve.Width);
+
+        Assert.Equal(2, result.Valve.Pieces.Count);
+
+        Assert.Equal(1200, result.Valve.Pieces[0].Length);
+        Assert.Equal(1180, result.Valve.Pieces[1].Length);
+    }
+    [Fact]
+    public void FirstPiece_May_Start_With_Cut_Edge()
+    {
+        var pieces = new List<Piece>
+        {
+        new()
+        {
+            Length = 400,
+            Height = 1280,
+            LeftEdge = EdgeType.Cut,
+            RightEdge = EdgeType.Groove
+        },
+        new()
+        {
+            Length = 1200,
+            Height = 1280,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        },
+        new()
+        {
+            Length = 780,
+            Height = 1280,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Cut
+        }
+        };
+
+        var assembler = new ValveAssembler();
+
+        var result = assembler.Assemble(
+            height: 1280,
+            width: 2380,
+            pieces);
+
+        Assert.Equal(3, result.Valve.Pieces.Count);
+    }
+    [Fact]
+    public void FirstPiece_Cannot_Start_With_Groove()
+    {
+        var pieces = new List<Piece>
+    {
+        new()
+        {
+            Length = 1200,
+            LeftEdge = EdgeType.Groove,
+            RightEdge = EdgeType.Groove
+        },
+        new()
+        {
+            Length = 1180,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Cut
+        }
+    };
+
+        var assembler = new ValveAssembler();
+
+        Assert.Throws<InvalidOperationException>(() =>
+            assembler.Assemble(
+                height: 1280,
+                width: 2380,
+                pieces));
+    }
+    [Fact]
+    public void MiddlePiece_Cannot_Have_Cut_Right_Edge()
+    {
+        var pieces = new List<Piece>
+    {
+        new()
+        {
+            Length = 600,
+            LeftEdge = EdgeType.Cut,
+            RightEdge = EdgeType.Groove
+        },
+        new()
+        {
+            Length = 800,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Cut
+        },
+        new()
+        {
+            Length = 980,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        }
+    };
+
+        var assembler = new ValveAssembler();
+
+        Assert.Throws<InvalidOperationException>(() =>
+            assembler.Assemble(
+                height: 1280,
+                width: 2380,
+                pieces));
+    }
+    [Fact]
+    public void LastPiece_May_End_With_Cut_Edge()
+    {
+        var pieces = new List<Piece>
+    {
+        new()
+        {
+            Length = 1200,
+            Height = 1280,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        },
+        new()
+        {
+            Length = 1180,
+            Height = 1280,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Cut
+        }
+    };
+
+        var assembler = new ValveAssembler();
+
+        var result = assembler.Assemble(
+            height: 1280,
+            width: 2380,
+            pieces);
+
+        Assert.Equal(EdgeType.Cut,
+            result.Valve.Pieces[^1].RightEdge);
+    }
+    [Fact]
+    public void Assemble_Throws_When_Pieces_Do_Not_Match_Valve_Width()
+    {
+        var pieces = new List<Piece>
+    {
+        new()
+        {
+            Length = 1200,
+            Height = 1280,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        },
+        new()
+        {
+            Length = 1100,
+            Height = 1280,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Cut
+        }
+    };
+
+        var assembler = new ValveAssembler();
+
+        Assert.Throws<InvalidOperationException>(() =>
+            assembler.Assemble(
+                height: 1280,
+                width: 2380,
+                pieces));
+    }
+    [Fact]
+    public void Assemble_Throws_When_Piece_Height_Does_Not_Match_Valve()
+    {
+        var pieces = new List<Piece>
+    {
+        new()
+        {
+            Length = 1200,
+            Height = 1200,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        },
+        new()
+        {
+            Length = 1180,
+            Height = 1200,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Cut
+        }
+    };
+
+        var assembler = new ValveAssembler();
+
+        Assert.Throws<InvalidOperationException>(() =>
+            assembler.Assemble(
+                height: 1280,
+                width: 2380,
+                pieces));
+    }
+}
+
+
+
+--- Файл: EdgeType.cs ---
+==============================================================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace AGR_PanelOptimizer.Core.Enums;
+
+public enum EdgeType
+{
+    Cut,
+    Tongue,
+    Groove
+}
+
+
+
+
+--- Файл: IPanelOptimizer.cs ---
+==============================================================
+using AGR_PanelOptimizer.Core.Models;
+
+namespace AGR_PanelOptimizer.Core.Interfaces;
+
+public interface IPanelOptimizer
+{
+    OptimizationResult Calculate(
+        PanelSettings settings,
+        IReadOnlyCollection<ValveOrder> orders);
+}
+
+
+
+--- Файл: Blank.cs ---
+==============================================================
+namespace AGR_PanelOptimizer.Core.Models;
+
+public class Blank
+{
+    public int Length { get; init; }
+
+    public int Height { get; init; }
+
+    public int SourcePanelPosition { get; init; }
+}
+
+
+
+--- Файл: OffcutEvaluation.cs ---
+==============================================================
+namespace AGR_PanelOptimizer.Core.Models;
+
+public class OffcutEvaluation
+{
+    public Piece Piece { get; init; } = null!;
+
+    public bool IsUsable { get; init; }
+}
+
+
+
+--- Файл: OptimizationResult.cs ---
+==============================================================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace AGR_PanelOptimizer.Core.Models
+{
+    public class OptimizationResult
+    {
+    }
+}
+
+
+
+
+--- Файл: Panel.cs ---
+==============================================================
+namespace AGR_PanelOptimizer.Core.Models;
+
+public class Panel
+{
+    public int Length { get; init; }
+
+    public int Height { get; init; }
+}
+
+
+
+--- Файл: PanelCutResult.cs ---
+==============================================================
+namespace AGR_PanelOptimizer.Core.Models;
+
+public class PanelCutResult
+{
+    public IReadOnlyList<Blank> Blanks { get; init; } =
+        Array.Empty<Blank>();
+
+    public int RemainingLength { get; init; }
+}
+
+
+
+--- Файл: PanelSettings.cs ---
+==============================================================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace AGR_PanelOptimizer.Core.Models;
+
+public class PanelSettings
+{
+    public int PanelLength { get; set; } = 6000;
+
+    public int PanelHeight { get; set; } = 1200;
+
+    public int MinimumOffcut { get; set; } = 300;
+}
+
+
+
+
+--- Файл: Piece.cs ---
+==============================================================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using AGR_PanelOptimizer.Core.Enums;
+
+namespace AGR_PanelOptimizer.Core.Models;
+
+public class Piece
+{
+    public int Length { get; init; }
+    public int Height { get; init; }
+
+    public EdgeType LeftEdge { get; init; }
+
+    public EdgeType RightEdge { get; init; }
+}
+
+
+
+
+--- Файл: Valve.cs ---
+==============================================================
+namespace AGR_PanelOptimizer.Core.Models;
+
+public class Valve
+{
+    public int Height { get; init; }
+
+    public int Width { get; init; }
+
+    public IReadOnlyList<Piece> Pieces { get; init; } =
+        Array.Empty<Piece>();
+
+    public IReadOnlyList<Piece> Waste { get; init; } =
+        Array.Empty<Piece>();
+}
+
+
+
+--- Файл: ValveAssemblyResult.cs ---
+==============================================================
+namespace AGR_PanelOptimizer.Core.Models;
+
+public class ValveAssemblyResult
+{
+    public Valve Valve { get; init; } = null!;
+}
+
+
+
+--- Файл: ValveOrder.cs ---
+==============================================================
+namespace AGR_PanelOptimizer.Core.Models;
+
+public class ValveOrder
+{
+    public int Height { get; set; }
+
+    public int Width { get; set; }
+
+    public int Quantity { get; set; }
+}
+
+
+
+--- Файл: BlankCutter.cs ---
+==============================================================
+using AGR_PanelOptimizer.Core.Models;
+
+namespace AGR_PanelOptimizer.Core.Services;
+
+public class BlankCutter
+{
+    public PanelCutResult Cut(
+        Panel panel,
+        int blankLength)
+    {
+        ArgumentNullException.ThrowIfNull(panel);
+
+        if (blankLength <= 0)
+            throw new ArgumentOutOfRangeException(nameof(blankLength));
+
+        var count = panel.Length / blankLength;
+
+        var blanks = new List<Blank>(count);
+
+        for (var i = 0; i < count; i++)
+        {
+            blanks.Add(new Blank
+            {
+                Length = blankLength,
+                Height = panel.Height,
+                SourcePanelPosition = i * blankLength
+            });
+        }
+
+        var remainingLength =
+            panel.Length - count * blankLength;
+
+        return new PanelCutResult
+        {
+            Blanks = blanks,
+            RemainingLength = remainingLength
+        };
+    }
+}
+
+
+
+--- Файл: BlankPieceCutter.cs ---
+==============================================================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace AGR_PanelOptimizer.Core.Services
+{
+    internal class BlankPieceCutter
+    {
+    }
+}
+
+
+
+
+--- Файл: OffcutEvaluator.cs ---
+==============================================================
+using AGR_PanelOptimizer.Core.Models;
+
+namespace AGR_PanelOptimizer.Core.Services;
+
+public class OffcutEvaluator
+{
+    public bool IsUsable(Piece piece, int minimumLength)
+    {
+        ArgumentNullException.ThrowIfNull(piece);
+
+        if (minimumLength < 0)
+            throw new ArgumentOutOfRangeException(nameof(minimumLength));
+
+        return piece.Length >= minimumLength;
+    }
+}
+
+
+
+--- Файл: PanelOptimizer.cs ---
+==============================================================
+using AGR_PanelOptimizer.Core.Interfaces;
+using AGR_PanelOptimizer.Core.Models;
+
+namespace AGR_PanelOptimizer.Core.Services;
+
+public class PanelOptimizer : IPanelOptimizer
+{
+    public OptimizationResult Calculate(
+        PanelSettings settings,
+        IReadOnlyCollection<ValveOrder> orders)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        ArgumentNullException.ThrowIfNull(orders);
+
+        return new OptimizationResult();
+    }
+}
+
+
+
+--- Файл: PieceCutter.cs ---
+==============================================================
+using AGR_PanelOptimizer.Core.Enums;
+using AGR_PanelOptimizer.Core.Models;
+
+namespace AGR_PanelOptimizer.Core.Services;
+
+public class PieceCutter
+{
+    public (Piece RequiredPiece, Piece RemainingPiece) Cut(
+        Piece source,
+        int requiredLength)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        if (requiredLength <= 0)
+            throw new ArgumentOutOfRangeException(nameof(requiredLength));
+
+        if (requiredLength >= source.Length)
+            throw new ArgumentOutOfRangeException(nameof(requiredLength));
+
+        var requiredPiece = new Piece
+        {
+            Length = requiredLength,
+            Height = source.Height,
+            LeftEdge = source.LeftEdge,
+            RightEdge = EdgeType.Cut
+        };
+
+        var remainingPiece = new Piece
+        {
+            Length = source.Length - requiredLength,
+            Height = source.Height,
+            LeftEdge = EdgeType.Cut,
+            RightEdge = source.RightEdge
+        };
+
+        return (requiredPiece, remainingPiece);
+    }
+}
+
+
+
+--- Файл: ValveAssembler.cs ---
+==============================================================
+using AGR_PanelOptimizer.Core.Models;
+
+namespace AGR_PanelOptimizer.Core.Services;
+
+public class ValveAssembler
+{
+    public ValveAssemblyResult Assemble(
+        int height,
+        int width,
+        IReadOnlyList<Piece> pieces)
+    {
+        ArgumentNullException.ThrowIfNull(pieces);
+
+        if (height <= 0)
+            throw new ArgumentOutOfRangeException(nameof(height));
+
+        if (width <= 0)
+            throw new ArgumentOutOfRangeException(nameof(width));
+
+        if (pieces.Count == 0)
+            throw new ArgumentException(
+                "At least one piece is required.",
+                nameof(pieces));
+
+        var totalLength = pieces.Sum(x => x.Length);
+
+        if (totalLength != width)
+        {
+            throw new InvalidOperationException(
+                $"Pieces total length ({totalLength}) " +
+                $"does not match valve width ({width}).");
+        }
+
+        ValidatePieces(height,pieces);
+
+        return new ValveAssemblyResult
+        {
+            Valve = new Valve
+            {
+                Height = height,
+                Width = width,
+                Pieces = pieces
+            }
+        };
+    }
+
+    private static void ValidatePieces(
+        int valveHeight,
+        IReadOnlyList<Piece> pieces)
+    {
+        var first = pieces[0];
+
+        foreach (var piece in pieces)
+        {
+            if (piece.Height != valveHeight)
+            {
+                throw new InvalidOperationException(
+                    $"Piece height ({piece.Height}) " +
+                    $"does not match valve height ({valveHeight}).");
+            }
+        }
+
+        if (first.LeftEdge != Enums.EdgeType.Tongue &&
+            first.LeftEdge != Enums.EdgeType.Cut)
+        {
+            throw new InvalidOperationException(
+                "The first piece must have Tongue or Cut on the left edge.");
+        }
+
+        if (first.RightEdge != Enums.EdgeType.Groove)
+        {
+            throw new InvalidOperationException(
+                "The first piece must have Groove on the right edge.");
+        }
+
+        for (var i = 1; i < pieces.Count - 1; i++)
+        {
+            var piece = pieces[i];
+
+            if (piece.LeftEdge != Enums.EdgeType.Tongue ||
+                piece.RightEdge != Enums.EdgeType.Groove)
+            {
+                throw new InvalidOperationException(
+                    "Middle pieces must have Tongue on the left " +
+                    "and Groove on the right.");
+            }
+        }
+
+        if (pieces.Count > 1)
+        {
+            var last = pieces[^1];
+
+            if (last.LeftEdge != Enums.EdgeType.Tongue)
+            {
+                throw new InvalidOperationException(
+                    "The last piece must have Tongue on the left edge.");
+            }
+
+            if (last.RightEdge != Enums.EdgeType.Groove &&
+                last.RightEdge != Enums.EdgeType.Cut)
+            {
+                throw new InvalidOperationException(
+                    "The last piece must have Groove or Cut on the right edge.");
+            }
+        }
+    }
+}
+
+
+
+--- Файл: .NETCoreApp,Version=v8.0.AssemblyAttributes.cs ---
+==============================================================
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
+
+
+
+
+--- Файл: AGR_PanelOptimizer.Core.AssemblyInfo.cs ---
+==============================================================
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     Этот код создан программой.
+//     Исполняемая версия:4.0.30319.42000
+//
+//     Изменения в этом файле могут привести к неправильной работе и будут потеряны в случае
+//     повторной генерации кода.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("AGR_PanelOptimizer.Core")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1b511013b36ad8571dd04c1142523d990aa9412c")]
+[assembly: System.Reflection.AssemblyProductAttribute("AGR_PanelOptimizer.Core")]
+[assembly: System.Reflection.AssemblyTitleAttribute("AGR_PanelOptimizer.Core")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Создано классом WriteCodeFragment MSBuild.
+
+
+
+
+
+--- Файл: AGR_PanelOptimizer.Core.GlobalUsings.g.cs ---
+==============================================================
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
+
+
+--- Файл: PanelOptimizer.Core.GlobalUsings.g.cs ---
+==============================================================
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
+
+
+--- Файл: .NETCoreApp,Version=v8.0.AssemblyAttributes.cs ---
+==============================================================
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
+
+
+
+
+--- Файл: AGR_PanelOptimizer.Infrastructure.AssemblyInfo.cs ---
+==============================================================
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     Этот код создан программой.
+//     Исполняемая версия:4.0.30319.42000
+//
+//     Изменения в этом файле могут привести к неправильной работе и будут потеряны в случае
+//     повторной генерации кода.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("AGR_PanelOptimizer.Infrastructure")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1b511013b36ad8571dd04c1142523d990aa9412c")]
+[assembly: System.Reflection.AssemblyProductAttribute("AGR_PanelOptimizer.Infrastructure")]
+[assembly: System.Reflection.AssemblyTitleAttribute("AGR_PanelOptimizer.Infrastructure")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Создано классом WriteCodeFragment MSBuild.
+
+
+
+
+
+--- Файл: AGR_PanelOptimizer.Infrastructure.GlobalUsings.g.cs ---
+==============================================================
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
+
+
+--- Файл: PanelOptimizer.Infrastructure.AssemblyInfo.cs ---
+==============================================================
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     Этот код создан программой.
+//     Исполняемая версия:4.0.30319.42000
+//
+//     Изменения в этом файле могут привести к неправильной работе и будут потеряны в случае
+//     повторной генерации кода.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("PanelOptimizer.Infrastructure")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+69595bbbb70c866d39ca1fb37abc002e3b9f4719")]
+[assembly: System.Reflection.AssemblyProductAttribute("PanelOptimizer.Infrastructure")]
+[assembly: System.Reflection.AssemblyTitleAttribute("PanelOptimizer.Infrastructure")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Создано классом WriteCodeFragment MSBuild.
+
+
+
+
+
+--- Файл: PanelOptimizer.Infrastructure.GlobalUsings.g.cs ---
+==============================================================
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
+
+
+--- Файл: .NETCoreApp,Version=v8.0.AssemblyAttributes.cs ---
+==============================================================
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
+
+
+
+
+--- Файл: AGR_PanelOptimizer.Web.AssemblyInfo.cs ---
+==============================================================
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     Этот код создан программой.
+//     Исполняемая версия:4.0.30319.42000
+//
+//     Изменения в этом файле могут привести к неправильной работе и будут потеряны в случае
+//     повторной генерации кода.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("AGR_PanelOptimizer.Web")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1b511013b36ad8571dd04c1142523d990aa9412c")]
+[assembly: System.Reflection.AssemblyProductAttribute("AGR_PanelOptimizer.Web")]
+[assembly: System.Reflection.AssemblyTitleAttribute("AGR_PanelOptimizer.Web")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Создано классом WriteCodeFragment MSBuild.
+
+
+
+
+
+--- Файл: AGR_PanelOptimizer.Web.GlobalUsings.g.cs ---
+==============================================================
+// <auto-generated/>
+global using global::Microsoft.AspNetCore.Builder;
+global using global::Microsoft.AspNetCore.Hosting;
+global using global::Microsoft.AspNetCore.Http;
+global using global::Microsoft.AspNetCore.Routing;
+global using global::Microsoft.Extensions.Configuration;
+global using global::Microsoft.Extensions.DependencyInjection;
+global using global::Microsoft.Extensions.Hosting;
+global using global::Microsoft.Extensions.Logging;
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Net.Http.Json;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
+
+
+--- Файл: PanelOptimizer.Web.AssemblyInfo.cs ---
+==============================================================
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     Этот код создан программой.
+//     Исполняемая версия:4.0.30319.42000
+//
+//     Изменения в этом файле могут привести к неправильной работе и будут потеряны в случае
+//     повторной генерации кода.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("PanelOptimizer.Web")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+69595bbbb70c866d39ca1fb37abc002e3b9f4719")]
+[assembly: System.Reflection.AssemblyProductAttribute("PanelOptimizer.Web")]
+[assembly: System.Reflection.AssemblyTitleAttribute("PanelOptimizer.Web")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Создано классом WriteCodeFragment MSBuild.
+
+
+
+
+
+--- Файл: PanelOptimizer.Web.GlobalUsings.g.cs ---
+==============================================================
+// <auto-generated/>
+global using global::Microsoft.AspNetCore.Builder;
+global using global::Microsoft.AspNetCore.Hosting;
+global using global::Microsoft.AspNetCore.Http;
+global using global::Microsoft.AspNetCore.Routing;
+global using global::Microsoft.Extensions.Configuration;
+global using global::Microsoft.Extensions.DependencyInjection;
+global using global::Microsoft.Extensions.Hosting;
+global using global::Microsoft.Extensions.Logging;
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Net.Http.Json;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
+
+
+--- Файл: .NETCoreApp,Version=v8.0.AssemblyAttributes.cs ---
+==============================================================
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
+
+
+
+
+--- Файл: Tests.AssemblyInfo.cs ---
+==============================================================
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     Этот код создан программой.
+//     Исполняемая версия:4.0.30319.42000
+//
+//     Изменения в этом файле могут привести к неправильной работе и будут потеряны в случае
+//     повторной генерации кода.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("Tests")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1b511013b36ad8571dd04c1142523d990aa9412c")]
+[assembly: System.Reflection.AssemblyProductAttribute("Tests")]
+[assembly: System.Reflection.AssemblyTitleAttribute("Tests")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Создано классом WriteCodeFragment MSBuild.
+
+
+
+
+
+--- Файл: Tests.GlobalUsings.g.cs ---
+==============================================================
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+global using global::Xunit;
+
+
+
+==============================================================
+--- Конец проекта ---
