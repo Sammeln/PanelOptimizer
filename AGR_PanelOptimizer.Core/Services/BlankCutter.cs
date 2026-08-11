@@ -4,7 +4,7 @@ namespace AGR_PanelOptimizer.Core.Services;
 
 public class BlankCutter
 {
-    public IReadOnlyList<Blank> Cut(
+    public PanelCutResult Cut(
         Panel panel,
         int blankLength)
     {
@@ -27,6 +27,13 @@ public class BlankCutter
             });
         }
 
-        return blanks;
+        var remainingLength =
+            panel.Length - count * blankLength;
+
+        return new PanelCutResult
+        {
+            Blanks = blanks,
+            RemainingLength = remainingLength
+        };
     }
 }
