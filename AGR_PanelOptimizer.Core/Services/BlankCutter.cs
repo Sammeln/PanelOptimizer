@@ -1,4 +1,5 @@
-﻿using AGR_PanelOptimizer.Core.Models;
+﻿using AGR_PanelOptimizer.Core.Enums;
+using AGR_PanelOptimizer.Core.Models;
 
 namespace AGR_PanelOptimizer.Core.Services;
 
@@ -6,36 +7,55 @@ public class BlankCutter
 {
     public PanelCutResult Cut(
         Panel panel,
-        int blankLength)
+        int blankHeight)
     {
         ArgumentNullException.ThrowIfNull(panel);
 
-        if (blankLength <= 0)
-            throw new ArgumentOutOfRangeException(nameof(blankLength));
+        if (blankHeight <= 0)
+            throw new ArgumentOutOfRangeException(nameof(blankHeight));
 
-        var count = panel.Length / blankLength;
+        var blankCount = panel.Length / blankHeight;
 
-        var blanks = new List<Blank>(count);
+        var cuts = new List<PanelCut>();
 
-        for (var i = 0; i < count; i++)
+        for (var i = 0; i < blankCount; i++)
         {
-            blanks.Add(new Blank
+            var blank = new Blank
             {
-                Height = blankLength,
-                Length= panel.Height,
-                LeftEdge = Enums.EdgeType.Tongue,
-                RightEdge = Enums.EdgeType.Groove,
-                SourcePanelPosition = i * blankLength
+                Height = blankHeight,
+                Length = panel.Height,
+                LeftEdge = EdgeType.Tongue,
+                RightEdge = EdgeType.Groove,
+                SourcePanelPosition = i * blankHeight
+            };
+
+            cuts.Add(new PanelCut
+            {
+                StartPosition = i * blankHeight,
+                Length = blankHeight,
+                IsBlank = true,
+                Blank = blank
             });
         }
 
-        var remainingLength =
-            panel.Length - count * blankLength;
+        var usedLength = blankCount * blankHeight;
+        var remainingLength = panel.Length - usedLength;
+
+        if (remainingLength > 0)
+        {
+            cuts.Add(new PanelCut
+            {
+                StartPosition = usedLength,
+                Length = remainingLength,
+                IsBlank = false
+            });
+        }
 
         return new PanelCutResult
         {
-            Blanks = blanks,
-            RemainingLength = remainingLength
+            PanelLength = panel.Length,
+            PanelHeight = panel.Height,
+            Cuts = cuts
         };
     }
 }

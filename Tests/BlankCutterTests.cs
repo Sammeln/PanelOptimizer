@@ -7,32 +7,7 @@ namespace AGR_PanelOptimizer.Core.Tests;
 public class BlankCutterTests
 {
     [Fact]
-    public void Cut_6000mm_Panel_Into_1280mm_Blanks_Returns_4_Blanks()
-    {
-        var panel = new Panel
-        {
-            Length = 6000,
-            Height = 1200
-        };
-
-        var cutter = new BlankCutter();
-
-        var result = cutter.Cut(
-            panel,
-            blankLength: 1280);
-
-        Assert.Equal(4, result.Blanks.Count);
-
-        Assert.All(
-            result.Blanks,
-            blank =>
-            {
-                Assert.Equal(1280, blank.Length);
-                Assert.Equal(1200, blank.Height);
-            });
-    }
-    [Fact]
-    public void Blanks_Have_Correct_Source_Positions()
+    public void Cut_6000mm_Panel_Into_1280mm_Blanks()
     {
         var panel = new Panel
         {
@@ -44,13 +19,48 @@ public class BlankCutterTests
 
         var result = cutter.Cut(panel, 1280);
 
-        Assert.Equal(0, result.Blanks[0].SourcePanelPosition);
-        Assert.Equal(2560, result.Blanks[2].SourcePanelPosition);
-        Assert.Equal(3840, result.Blanks[3].SourcePanelPosition);
-        Assert.Equal(1280, result.Blanks[1].SourcePanelPosition);
+        Assert.Equal(6000, result.PanelLength);
+        Assert.Equal(1200, result.PanelHeight);
+
+        Assert.Equal(5, result.Cuts.Count);
+
+        Assert.All(
+            result.Cuts.Take(4),
+            cut =>
+            {
+                Assert.True(cut.IsBlank);
+                Assert.NotNull(cut.Blank);
+                Assert.Equal(1280, cut.Length);
+            });
+
+        var remainder = result.Cuts[4];
+
+        Assert.False(remainder.IsBlank);
+        Assert.Null(remainder.Blank);
+        Assert.Equal(5120, remainder.StartPosition);
+        Assert.Equal(880, remainder.Length);
     }
     [Fact]
-    public void Cut_4500mm_Panel_Into_1280mm_Blanks_Returns_3_Blanks()
+    public void Cut_Stores_Correct_Start_Positions()
+    {
+        var panel = new Panel
+        {
+            Length = 6000,
+            Height = 1200
+        };
+
+        var cutter = new BlankCutter();
+
+        var result = cutter.Cut(panel, 1280);
+
+        Assert.Equal(0, result.Cuts[0].StartPosition);
+        Assert.Equal(1280, result.Cuts[1].StartPosition);
+        Assert.Equal(2560, result.Cuts[2].StartPosition);
+        Assert.Equal(3840, result.Cuts[3].StartPosition);
+        Assert.Equal(5120, result.Cuts[4].StartPosition);
+    }
+    [Fact]
+    public void Cut_4500mm_Panel_Into_1280mm_Blanks()
     {
         var panel = new Panel
         {
@@ -62,7 +72,15 @@ public class BlankCutterTests
 
         var result = cutter.Cut(panel, 1280);
 
-        Assert.Equal(3, result.Blanks.Count);
+        Assert.Equal(4, result.Cuts.Count);
+
+        Assert.Equal(0, result.Cuts[0].StartPosition);
+        Assert.Equal(1280, result.Cuts[1].StartPosition);
+        Assert.Equal(2560, result.Cuts[2].StartPosition);
+
+        Assert.Equal(3840, result.Cuts[3].StartPosition);
+        Assert.Equal(660, result.Cuts[3].Length);
+        Assert.False(result.Cuts[3].IsBlank);
     }
     [Fact]
     public void Cut_6000mm_Panel_Into_1280mm_Blanks_Leaves_880mm()
@@ -77,7 +95,7 @@ public class BlankCutterTests
 
         var result = cutter.Cut(panel, 1280);
 
-        Assert.Equal(4, result.Blanks.Count);
+        Assert.Equal(4, result.Cuts.Count);
         Assert.Equal(880, result.RemainingLength);
     }
     [Fact]

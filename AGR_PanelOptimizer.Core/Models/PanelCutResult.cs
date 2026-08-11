@@ -2,8 +2,10 @@
 
 public class PanelCutResult
 {
-    public IReadOnlyList<Blank> Blanks { get; init; } =
-        Array.Empty<Blank>();
+    public IReadOnlyList<PanelCut> Cuts { get; init; } =
+        Array.Empty<PanelCut>();
 
-    public int RemainingLength { get; init; }
+    public int PanelLength { get; init; }
+
+    public int PanelHeight { get; init; }
 }
