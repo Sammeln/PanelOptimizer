@@ -21,8 +21,10 @@ public class BlankCutter
         {
             blanks.Add(new Blank
             {
-                Length = blankLength,
-                Height = panel.Height,
+                Height = blankLength,
+                Length= panel.Height,
+                LeftEdge = Enums.EdgeType.Tongue,
+                RightEdge = Enums.EdgeType.Groove,
                 SourcePanelPosition = i * blankLength
             });
         }
