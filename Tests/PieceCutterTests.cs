@@ -37,6 +37,7 @@ public class PieceCutterTests
         var source = new Piece
         {
             Length = 1200,
+            Height = 1280,
             LeftEdge = EdgeType.Tongue,
             RightEdge = EdgeType.Groove
         };
@@ -60,6 +61,7 @@ public class PieceCutterTests
         var source = new Piece
         {
             Length = 1200,
+            Height = 1280,
             LeftEdge = EdgeType.Tongue,
             RightEdge = EdgeType.Groove
         };
@@ -75,6 +77,7 @@ public class PieceCutterTests
         var source = new Piece
         {
             Length = 1200,
+            Height = 1280,
             LeftEdge = EdgeType.Tongue,
             RightEdge = EdgeType.Groove
         };
@@ -84,4 +87,24 @@ public class PieceCutterTests
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             cutter.Cut(source, 1201));
     }
+    [Fact]
+    public void Cut_Preserves_Piece_Height()
+    {
+        var source = new Piece
+        {
+            Length = 1200,
+            Height = 1280,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        };
+
+        var cutter = new PieceCutter();
+
+        var (requiredPiece, remainingPiece) =
+            cutter.Cut(source, 800);
+
+        Assert.Equal(1280, requiredPiece.Height);
+        Assert.Equal(1280, remainingPiece.Height);
+    }
+   
 }

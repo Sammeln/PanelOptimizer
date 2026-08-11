@@ -14,12 +14,14 @@ public class ValveAssemblerTests
             new()
             {
                 Length = 1200,
+                Height = 1280,
                 LeftEdge = EdgeType.Tongue,
                 RightEdge = EdgeType.Groove
             },
             new()
             {
                 Length = 1180,
+                Height = 1280,
                 LeftEdge = EdgeType.Tongue,
                 RightEdge = EdgeType.Cut
             }
@@ -48,18 +50,21 @@ public class ValveAssemblerTests
         new()
         {
             Length = 400,
+            Height = 1280,
             LeftEdge = EdgeType.Cut,
             RightEdge = EdgeType.Groove
         },
         new()
         {
             Length = 1200,
+            Height = 1280,
             LeftEdge = EdgeType.Tongue,
             RightEdge = EdgeType.Groove
         },
         new()
         {
             Length = 780,
+            Height = 1280,
             LeftEdge = EdgeType.Tongue,
             RightEdge = EdgeType.Cut
         }
@@ -142,12 +147,14 @@ public class ValveAssemblerTests
         new()
         {
             Length = 1200,
+            Height = 1280,
             LeftEdge = EdgeType.Tongue,
             RightEdge = EdgeType.Groove
         },
         new()
         {
             Length = 1180,
+            Height = 1280,
             LeftEdge = EdgeType.Tongue,
             RightEdge = EdgeType.Cut
         }
@@ -171,12 +178,43 @@ public class ValveAssemblerTests
         new()
         {
             Length = 1200,
+            Height = 1280,
             LeftEdge = EdgeType.Tongue,
             RightEdge = EdgeType.Groove
         },
         new()
         {
             Length = 1100,
+            Height = 1280,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Cut
+        }
+    };
+
+        var assembler = new ValveAssembler();
+
+        Assert.Throws<InvalidOperationException>(() =>
+            assembler.Assemble(
+                height: 1280,
+                width: 2380,
+                pieces));
+    }
+    [Fact]
+    public void Assemble_Throws_When_Piece_Height_Does_Not_Match_Valve()
+    {
+        var pieces = new List<Piece>
+    {
+        new()
+        {
+            Length = 1200,
+            Height = 1200,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        },
+        new()
+        {
+            Length = 1180,
+            Height = 1200,
             LeftEdge = EdgeType.Tongue,
             RightEdge = EdgeType.Cut
         }

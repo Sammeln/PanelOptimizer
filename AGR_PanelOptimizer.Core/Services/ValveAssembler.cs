@@ -31,7 +31,7 @@ public class ValveAssembler
                 $"does not match valve width ({width}).");
         }
 
-        ValidatePieces(pieces);
+        ValidatePieces(height,pieces);
 
         return new ValveAssemblyResult
         {
@@ -45,9 +45,20 @@ public class ValveAssembler
     }
 
     private static void ValidatePieces(
+        int valveHeight,
         IReadOnlyList<Piece> pieces)
     {
         var first = pieces[0];
+
+        foreach (var piece in pieces)
+        {
+            if (piece.Height != valveHeight)
+            {
+                throw new InvalidOperationException(
+                    $"Piece height ({piece.Height}) " +
+                    $"does not match valve height ({valveHeight}).");
+            }
+        }
 
         if (first.LeftEdge != Enums.EdgeType.Tongue &&
             first.LeftEdge != Enums.EdgeType.Cut)

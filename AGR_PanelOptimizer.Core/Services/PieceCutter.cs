@@ -9,6 +9,8 @@ public class PieceCutter
         Piece source,
         int requiredLength)
     {
+        ArgumentNullException.ThrowIfNull(source);
+
         if (requiredLength <= 0)
             throw new ArgumentOutOfRangeException(nameof(requiredLength));
 
@@ -18,6 +20,7 @@ public class PieceCutter
         var requiredPiece = new Piece
         {
             Length = requiredLength,
+            Height = source.Height,
             LeftEdge = source.LeftEdge,
             RightEdge = EdgeType.Cut
         };
@@ -25,6 +28,7 @@ public class PieceCutter
         var remainingPiece = new Piece
         {
             Length = source.Length - requiredLength,
+            Height = source.Height,
             LeftEdge = EdgeType.Cut,
             RightEdge = source.RightEdge
         };

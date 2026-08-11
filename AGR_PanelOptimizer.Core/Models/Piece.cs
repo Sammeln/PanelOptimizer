@@ -11,6 +11,7 @@ namespace AGR_PanelOptimizer.Core.Models;
 public class Piece
 {
     public int Length { get; init; }
+    public int Height { get; init; }
 
     public EdgeType LeftEdge { get; init; }
 
