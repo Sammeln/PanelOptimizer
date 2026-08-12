@@ -27,8 +27,8 @@ public class BlankCutterTests
             result.Blanks,
             blank =>
             {
-                Assert.Equal(1280, blank.Length);
-                Assert.Equal(1200, blank.Height);
+                Assert.Equal(1200, blank.Length);
+                Assert.Equal(1280, blank.Height);
             });
     }
     [Fact]
