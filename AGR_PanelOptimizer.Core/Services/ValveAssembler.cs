@@ -31,7 +31,7 @@ public class ValveAssembler
                 $"does not match valve width ({width}).");
         }
 
-        ValidatePieces(height,pieces);
+        ValidatePieces(height, pieces);
 
         return new ValveAssemblyResult
         {
@@ -48,8 +48,6 @@ public class ValveAssembler
         int valveHeight,
         IReadOnlyList<Piece> pieces)
     {
-        var first = pieces[0];
-
         foreach (var piece in pieces)
         {
             if (piece.Height != valveHeight)
@@ -59,6 +57,29 @@ public class ValveAssembler
                     $"does not match valve height ({valveHeight}).");
             }
         }
+
+        if (pieces.Count == 1)
+        {
+            var single = pieces[0];
+
+            if (single.LeftEdge != Enums.EdgeType.Tongue &&
+                single.LeftEdge != Enums.EdgeType.Cut)
+            {
+                throw new InvalidOperationException(
+                    "A single piece must have Tongue or Cut on the left edge.");
+            }
+
+            if (single.RightEdge != Enums.EdgeType.Groove &&
+                single.RightEdge != Enums.EdgeType.Cut)
+            {
+                throw new InvalidOperationException(
+                    "A single piece must have Groove or Cut on the right edge.");
+            }
+
+            return;
+        }
+
+        var first = pieces[0];
 
         if (first.LeftEdge != Enums.EdgeType.Tongue &&
             first.LeftEdge != Enums.EdgeType.Cut)
@@ -86,22 +107,19 @@ public class ValveAssembler
             }
         }
 
-        if (pieces.Count > 1)
+        var last = pieces[^1];
+
+        if (last.LeftEdge != Enums.EdgeType.Tongue)
         {
-            var last = pieces[^1];
+            throw new InvalidOperationException(
+                "The last piece must have Tongue on the left edge.");
+        }
 
-            if (last.LeftEdge != Enums.EdgeType.Tongue)
-            {
-                throw new InvalidOperationException(
-                    "The last piece must have Tongue on the left edge.");
-            }
-
-            if (last.RightEdge != Enums.EdgeType.Groove &&
-                last.RightEdge != Enums.EdgeType.Cut)
-            {
-                throw new InvalidOperationException(
-                    "The last piece must have Groove or Cut on the right edge.");
-            }
+        if (last.RightEdge != Enums.EdgeType.Groove &&
+            last.RightEdge != Enums.EdgeType.Cut)
+        {
+            throw new InvalidOperationException(
+                "The last piece must have Groove or Cut on the right edge.");
         }
     }
 }
