@@ -62,6 +62,72 @@ public class ValvePlannerTests
     }
 
     [Fact]
+    public void CreateValve_ShouldReuseOffcutForNextValve()
+    {
+        var order = new ValveOrder
+        {
+            Height = 1280,
+            Width = 2380,
+            Quantity = 2
+        };
+
+        var materialPool = new MaterialPool();
+
+        materialPool.Add(new Blank
+        {
+            Height = 1280,
+            Length = 1600,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        });
+
+        materialPool.Add(new Blank
+        {
+            Height = 1280,
+            Length = 1600,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        });
+
+        materialPool.Add(new Blank
+        {
+            Height = 1280,
+            Length = 1600,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        });
+
+        var planner = new ValvePlanner(
+            new BlankPieceCutter(),
+            new ValveAssembler());
+
+        var firstValve = planner.CreateValve(
+            order,
+            materialPool,
+            minimumOffcut: 300);
+
+        Assert.Equal(2380, firstValve.Valve.Width);
+        Assert.Equal(2, firstValve.Valve.Pieces.Count);
+
+        Assert.Equal(2, materialPool.Blanks.Count);
+        Assert.Equal(820, materialPool.Blanks[0].Length);
+        Assert.Equal(1600, materialPool.Blanks[1].Length);
+
+        var secondValve = planner.CreateValve(
+            order,
+            materialPool,
+            minimumOffcut: 300);
+
+        Assert.Equal(2380, secondValve.Valve.Width);
+        Assert.Equal(2, secondValve.Valve.Pieces.Count);
+
+        Assert.Equal(820, secondValve.Valve.Pieces[0].Length);
+        Assert.Equal(1560, secondValve.Valve.Pieces[1].Length);
+
+        Assert.Empty(materialPool.Blanks);
+    }
+
+    [Fact]
     public void CreateValve_ShouldThrow_WhenThereIsNotEnoughMaterial()
     {
         var order = new ValveOrder
