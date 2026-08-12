@@ -214,116 +214,6 @@ public class BlankCutterTests
 
 
 
---- Файл: BlankPieceCutterTests.cs ---
-==============================================================
-using AGR_PanelOptimizer.Core.Enums;
-using AGR_PanelOptimizer.Core.Models;
-using AGR_PanelOptimizer.Core.Services;
-
-namespace AGR_PanelOptimizer.Core.Tests;
-
-public class BlankPieceCutterTests
-{
-    [Fact]
-    public void Cut_Whole_Blank_Creates_Piece_Without_Remaining_Piece()
-    {
-        var blank = new Blank
-        {
-            Length = 1200,
-            Height = 1280,
-            LeftEdge = EdgeType.Tongue,
-            RightEdge = EdgeType.Groove
-        };
-
-        var cutter = new BlankPieceCutter();
-
-        var (piece, remaining) =
-            cutter.Cut(blank, 1200);
-
-        Assert.Equal(1200, piece.Length);
-        Assert.Equal(1280, piece.Height);
-
-        Assert.Equal(EdgeType.Tongue, piece.LeftEdge);
-        Assert.Equal(EdgeType.Groove, piece.RightEdge);
-
-        Assert.Null(remaining);
-    }
-    [Fact]
-    public void Cut_1180_From_1200_Creates_20mm_Remaining_Piece()
-    {
-        var blank = new Blank
-        {
-            Length = 1200,
-            Height = 1280,
-            LeftEdge = EdgeType.Tongue,
-            RightEdge = EdgeType.Groove
-        };
-
-        var cutter = new BlankPieceCutter();
-
-        var (piece, remaining) =
-            cutter.Cut(blank, 1180);
-
-        Assert.Equal(1180, piece.Length);
-        Assert.Equal(1280, piece.Height);
-
-        Assert.Equal(EdgeType.Tongue, piece.LeftEdge);
-        Assert.Equal(EdgeType.Cut, piece.RightEdge);
-
-        Assert.NotNull(remaining);
-
-        Assert.Equal(20, remaining.Length);
-        Assert.Equal(1280, remaining.Height);
-
-        Assert.Equal(EdgeType.Cut, remaining.LeftEdge);
-        Assert.Equal(EdgeType.Groove, remaining.RightEdge);
-    }
-    [Fact]
-    public void Cut_Whole_Offcut_Preserves_Cut_And_Groove_Edges()
-    {
-        var blank = new Blank
-        {
-            Length = 400,
-            Height = 1280,
-            LeftEdge = EdgeType.Cut,
-            RightEdge = EdgeType.Groove
-        };
-
-        var cutter = new BlankPieceCutter();
-
-        var (piece, remaining) =
-            cutter.Cut(blank, 400);
-
-        Assert.Equal(400, piece.Length);
-
-        Assert.Equal(EdgeType.Cut, piece.LeftEdge);
-        Assert.Equal(EdgeType.Groove, piece.RightEdge);
-
-        Assert.Null(remaining);
-    }
-    [Fact]
-    public void Cut_Preserves_Blank_Height()
-    {
-        var blank = new Blank
-        {
-            Length = 1200,
-            Height = 1350,
-            LeftEdge = EdgeType.Tongue,
-            RightEdge = EdgeType.Groove
-        };
-
-        var cutter = new BlankPieceCutter();
-
-        var (piece, remaining) =
-            cutter.Cut(blank, 800);
-
-        Assert.Equal(1350, piece.Height);
-        Assert.Equal(1350, remaining!.Height);
-    }
-}
-
-
-
 --- Файл: OffcutEvaluatorTests.cs ---
 ==============================================================
 using AGR_PanelOptimizer.Core.Models;
@@ -768,96 +658,6 @@ public class ValveAssemblerTests
 
 
 
---- Файл: ValveProductionScenarioTests.cs ---
-==============================================================
-using AGR_PanelOptimizer.Core.Enums;
-using AGR_PanelOptimizer.Core.Models;
-using AGR_PanelOptimizer.Core.Services;
-
-namespace AGR_PanelOptimizer.Core.Tests;
-
-public class ValveProductionScenarioTests
-{
-    [Fact]
-    public void Produce_1280x2380_Valve_From_6000mm_Panel()
-    {
-        // Arrange
-
-        var panel = new Panel
-        {
-            Length = 6000,
-            Height = 1200
-        };
-
-        var blankCutter = new BlankCutter();
-
-        var blankResult = blankCutter.Cut(
-            panel,
-            blankLength: 1280);
-
-        // Act
-
-        var blankPieceCutter = new BlankPieceCutter();
-
-        var (piece1, remaining1) =
-            blankPieceCutter.Cut(
-                blankResult.Blanks[0],
-                1200);
-
-        var (piece2, remaining2) =
-            blankPieceCutter.Cut(
-                blankResult.Blanks[1],
-                1180);
-
-        // Assert
-
-        Assert.Equal(4, blankResult.Blanks.Count);
-        Assert.Equal(880, blankResult.RemainingLength);
-
-        Assert.Equal(1200, piece1.Length);
-        Assert.Equal(1280, piece1.Height);
-
-        Assert.Equal(1180, piece2.Length);
-        Assert.Equal(1280, piece2.Height);
-
-        Assert.Null(remaining1);
-
-        Assert.NotNull(remaining2);
-        Assert.Equal(20, remaining2!.Length);
-
-        Assert.Equal(EdgeType.Tongue, piece1.LeftEdge);
-        Assert.Equal(EdgeType.Groove, piece1.RightEdge);
-
-        Assert.Equal(EdgeType.Tongue, piece2.LeftEdge);
-        Assert.Equal(EdgeType.Cut, piece2.RightEdge);
-
-        Assert.Equal(EdgeType.Cut, remaining2.LeftEdge);
-        Assert.Equal(EdgeType.Groove, remaining2.RightEdge);
-
-        var assembler = new ValveAssembler();
-
-        var result = assembler.Assemble(
-            height: 1280,
-            width: 2380,
-            new[]
-            {
-                piece1,
-                piece2
-            });
-
-        Assert.Equal(1280, result.Valve.Height);
-        Assert.Equal(2380, result.Valve.Width);
-        Assert.Equal(2, result.Valve.Pieces.Count);
-        var offcutEvaluator = new OffcutEvaluator();
-
-        Assert.False(
-            !offcutEvaluator.IsUsable(remaining2!, remaining2.Length));
-        Assert.Equal(880, blankResult.RemainingLength);
-    }
-}
-
-
-
 --- Файл: EdgeType.cs ---
 ==============================================================
 using System;
@@ -895,17 +695,13 @@ public interface IPanelOptimizer
 
 --- Файл: Blank.cs ---
 ==============================================================
-using AGR_PanelOptimizer.Core.Enums;
+namespace AGR_PanelOptimizer.Core.Models;
 
 public class Blank
 {
     public int Length { get; init; }
 
     public int Height { get; init; }
-
-    public EdgeType LeftEdge { get; init; }
-
-    public EdgeType RightEdge { get; init; }
 
     public int SourcePanelPosition { get; init; }
 }
@@ -1087,10 +883,8 @@ public class BlankCutter
         {
             blanks.Add(new Blank
             {
-                Height = blankLength,
-                Length= panel.Height,
-                LeftEdge = Enums.EdgeType.Tongue,
-                RightEdge = Enums.EdgeType.Groove,
+                Length = blankLength,
+                Height = panel.Height,
                 SourcePanelPosition = i * blankLength
             });
         }
@@ -1110,57 +904,19 @@ public class BlankCutter
 
 --- Файл: BlankPieceCutter.cs ---
 ==============================================================
-using AGR_PanelOptimizer.Core.Enums;
-using AGR_PanelOptimizer.Core.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace AGR_PanelOptimizer.Core.Services;
-
-public class BlankPieceCutter
+namespace AGR_PanelOptimizer.Core.Services
 {
-    public (Piece RequiredPiece, Piece? RemainingPiece) Cut(
-        Blank blank,
-        int requiredLength)
+    internal class BlankPieceCutter
     {
-        ArgumentNullException.ThrowIfNull(blank);
-
-        if (requiredLength <= 0)
-            throw new ArgumentOutOfRangeException(nameof(requiredLength));
-
-        if (requiredLength > blank.Length)
-            throw new ArgumentOutOfRangeException(nameof(requiredLength));
-
-        if (requiredLength == blank.Length)
-        {
-            return (
-                new Piece
-                {
-                    Length = blank.Length,
-                    Height = blank.Height,
-                    LeftEdge = blank.LeftEdge,
-                    RightEdge = blank.RightEdge
-                },
-                null);
-        }
-
-        var requiredPiece = new Piece
-        {
-            Length = requiredLength,
-            Height = blank.Height,
-            LeftEdge = blank.LeftEdge,
-            RightEdge = EdgeType.Cut
-        };
-
-        var remainingPiece = new Piece
-        {
-            Length = blank.Length - requiredLength,
-            Height = blank.Height,
-            LeftEdge = EdgeType.Cut,
-            RightEdge = blank.RightEdge
-        };
-
-        return (requiredPiece, remainingPiece);
     }
 }
+
 
 
 
@@ -1390,7 +1146,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AGR_PanelOptimizer.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+39b13dbbec129fc3206c890de29d9a5f697ebc45")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1b511013b36ad8571dd04c1142523d990aa9412c")]
 [assembly: System.Reflection.AssemblyProductAttribute("AGR_PanelOptimizer.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AGR_PanelOptimizer.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
@@ -1457,7 +1213,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AGR_PanelOptimizer.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+39b13dbbec129fc3206c890de29d9a5f697ebc45")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1b511013b36ad8571dd04c1142523d990aa9412c")]
 [assembly: System.Reflection.AssemblyProductAttribute("AGR_PanelOptimizer.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AGR_PanelOptimizer.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
@@ -1553,7 +1309,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AGR_PanelOptimizer.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+39b13dbbec129fc3206c890de29d9a5f697ebc45")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1b511013b36ad8571dd04c1142523d990aa9412c")]
 [assembly: System.Reflection.AssemblyProductAttribute("AGR_PanelOptimizer.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AGR_PanelOptimizer.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
@@ -1667,7 +1423,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+39b13dbbec129fc3206c890de29d9a5f697ebc45")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1b511013b36ad8571dd04c1142523d990aa9412c")]
 [assembly: System.Reflection.AssemblyProductAttribute("Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
