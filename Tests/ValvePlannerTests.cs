@@ -113,10 +113,25 @@ public class ValvePlannerTests
         Assert.Equal(600, firstValve.Valve.Pieces[2].Length);
 
         Assert.Single(materialPool.Blanks);
-        Assert.Equal(600, materialPool.Blanks[0].Length);
-        Assert.Equal(1280, materialPool.Blanks[0].Height);
-        Assert.Equal(EdgeType.Cut, materialPool.Blanks[0].LeftEdge);
-        Assert.Equal(EdgeType.Groove, materialPool.Blanks[0].RightEdge);
+        Assert.Equal(600, materialPool.Blanks.Last().Length);
+        Assert.Equal(1280, materialPool.Blanks.Last().Height);
+        Assert.Equal(EdgeType.Cut, materialPool.Blanks.Last().LeftEdge);
+        Assert.Equal(EdgeType.Groove, materialPool.Blanks.Last().RightEdge);
+
+        materialPool.Add(new Blank
+        {
+            Height = 1280,
+            Length = 1200,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        });
+        materialPool.Add(new Blank
+        {
+            Height = 1280,
+            Length = 1200,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        });
 
         var secondValve = planner.CreateValve(
             order,
