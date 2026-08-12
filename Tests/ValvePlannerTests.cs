@@ -64,22 +64,21 @@ public class ValvePlannerTests
     [Fact]
     public void CreateValve_ShouldReuseOffcutWithCorrectBlankOrientation()
     {
-        var order = new ValveOrder
+        var firstOrder = new ValveOrder
         {
             Height = 1280,
-            Width = 2380,
-            Quantity = 2
+            Width = 800,
+            Quantity = 1
+        };
+
+        var secondOrder = new ValveOrder
+        {
+            Height = 1280,
+            Width = 800,
+            Quantity = 1
         };
 
         var materialPool = new MaterialPool();
-
-        materialPool.Add(new Blank
-        {
-            Height = 1280,
-            Length = 1200,
-            LeftEdge = EdgeType.Tongue,
-            RightEdge = EdgeType.Groove
-        });
 
         materialPool.Add(new Blank
         {
@@ -102,31 +101,33 @@ public class ValvePlannerTests
             new ValveAssembler());
 
         var firstValve = planner.CreateValve(
-            order,
+            firstOrder,
             materialPool,
             minimumOffcut: 300);
 
-        Assert.Equal(2380, firstValve.Valve.Width);
-        Assert.Equal(2, firstValve.Valve.Pieces.Count);
+        Assert.Equal(800, firstValve.Valve.Width);
+        Assert.Single(firstValve.Valve.Pieces);
 
         Assert.Equal(2, materialPool.Blanks.Count);
-        Assert.Equal(120, materialPool.Blanks[0].Length);
+        Assert.Equal(400, materialPool.Blanks[0].Length);
         Assert.Equal(1280, materialPool.Blanks[0].Height);
         Assert.Equal(1200, materialPool.Blanks[1].Length);
         Assert.Equal(1280, materialPool.Blanks[1].Height);
 
         var secondValve = planner.CreateValve(
-            order,
+            secondOrder,
             materialPool,
             minimumOffcut: 300);
 
-        Assert.Equal(2380, secondValve.Valve.Width);
+        Assert.Equal(800, secondValve.Valve.Width);
         Assert.Equal(2, secondValve.Valve.Pieces.Count);
 
-        Assert.Equal(120, secondValve.Valve.Pieces[0].Length);
-        Assert.Equal(1200, secondValve.Valve.Pieces[1].Length);
+        Assert.Equal(400, secondValve.Valve.Pieces[0].Length);
+        Assert.Equal(400, secondValve.Valve.Pieces[1].Length);
 
-        Assert.Empty(materialPool.Blanks);
+        Assert.Single(materialPool.Blanks);
+        Assert.Equal(800, materialPool.Blanks[0].Length);
+        Assert.Equal(1280, materialPool.Blanks[0].Height);
     }
 
     [Fact]
