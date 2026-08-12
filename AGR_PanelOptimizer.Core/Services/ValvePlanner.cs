@@ -20,11 +20,11 @@ public class ValvePlanner
 
     public ValveAssemblyResult CreateValve(
         ValveOrder order,
-        IReadOnlyList<Blank> blanks,
+        MaterialPool materialPool,
         int minimumOffcut)
     {
         ArgumentNullException.ThrowIfNull(order);
-        ArgumentNullException.ThrowIfNull(blanks);
+        ArgumentNullException.ThrowIfNull(materialPool);
 
         if (order.Height <= 0)
             throw new ArgumentOutOfRangeException(nameof(order.Height));
@@ -35,25 +35,21 @@ public class ValvePlanner
         if (minimumOffcut < 0)
             throw new ArgumentOutOfRangeException(nameof(minimumOffcut));
 
-        if (blanks.Count == 0)
+        if (materialPool.Blanks.Count == 0)
             throw new ArgumentException(
                 "At least one blank is required.",
-                nameof(blanks));
+                nameof(materialPool));
 
         var pieces = new List<Piece>();
         var remainingWidth = order.Width;
 
-        foreach (var blank in blanks)
+        foreach (var blank in materialPool.Blanks.ToArray())
         {
             if (remainingWidth == 0)
                 break;
 
             if (blank.Height != order.Height)
-            {
-                throw new InvalidOperationException(
-                    $"Blank height ({blank.Height}) " +
-                    $"does not match valve height ({order.Height}).");
-            }
+                continue;
 
             var requiredLength = Math.Min(
                 blank.Length,
@@ -64,12 +60,22 @@ public class ValvePlanner
                     blank,
                     requiredLength);
 
+            materialPool.Remove(blank);
             pieces.Add(requiredPiece);
 
-            // Если после реза остался пригодный остаток,
-            // пока просто не теряем информацию о нём.
-            // На следующем этапе он будет возвращаться в MaterialPool.
-            _ = remainingPiece;
+            if (remainingPiece is not null &&
+                remainingPiece.Length >= minimumOffcut)
+            {
+                // Пригодный остаток возвращаем в пул как новую заготовку.
+                materialPool.Add(new Blank
+                {
+                    Length = remainingPiece.Length,
+                    Height = remainingPiece.Height,
+                    LeftEdge = remainingPiece.LeftEdge,
+                    RightEdge = remainingPiece.RightEdge,
+                    SourcePanelPosition = blank.SourcePanelPosition
+                });
+            }
 
             remainingWidth -= requiredPiece.Length;
         }
@@ -86,5 +92,20 @@ public class ValvePlanner
             order.Height,
             order.Width,
             pieces);
+    }
+
+    public ValveAssemblyResult CreateValve(
+        ValveOrder order,
+        IReadOnlyList<Blank> blanks,
+        int minimumOffcut)
+    {
+        ArgumentNullException.ThrowIfNull(blanks);
+
+        var materialPool = new MaterialPool();
+
+        foreach (var blank in blanks)
+            materialPool.Add(blank);
+
+        return CreateValve(order, materialPool, minimumOffcut);
     }
 }
