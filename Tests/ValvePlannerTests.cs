@@ -148,6 +148,42 @@ public class ValvePlannerTests
     }
 
     [Fact]
+    public void CreateValve_ShouldDiscardOffcut_WhenItIsBelowMinimum()
+    {
+        var order = new ValveOrder
+        {
+            Height = 1280,
+            Width = 1100,
+            Quantity = 1
+        };
+
+        var materialPool = new MaterialPool();
+
+        materialPool.Add(new Blank
+        {
+            Height = 1280,
+            Length = 1200,
+            LeftEdge = EdgeType.Tongue,
+            RightEdge = EdgeType.Groove
+        });
+
+        var planner = new ValvePlanner(
+            new BlankPieceCutter(),
+            new ValveAssembler());
+
+        var result = planner.CreateValve(
+            order,
+            materialPool,
+            minimumOffcut: 300);
+
+        Assert.Equal(1100, result.Valve.Width);
+        Assert.Single(result.Valve.Pieces);
+        Assert.Equal(1100, result.Valve.Pieces[0].Length);
+
+        Assert.Empty(materialPool.Blanks);
+    }
+
+    [Fact]
     public void CreateValve_ShouldThrow_WhenThereIsNotEnoughMaterial()
     {
         var order = new ValveOrder
