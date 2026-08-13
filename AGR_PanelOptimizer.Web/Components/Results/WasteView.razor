@@ -1,0 +1,27 @@
+@using AGR_PanelOptimizer.Core.Models
+
+<div class="waste-results">
+    <h2>Общие отходы</h2>
+
+    @if (Waste.Count == 0)
+    {
+        <p>Общих отходов нет.</p>
+    }
+    else
+    {
+        <div class="waste-list">
+            @foreach (var waste in Waste)
+            {
+                <div class="waste-item">
+                    <strong>@waste.Length × @waste.Height мм</strong>
+                    <span>Кромки: @waste.LeftEdge / @waste.RightEdge</span>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<PanelOffcut> Waste { get; set; } = Array.Empty<PanelOffcut>();
+}
