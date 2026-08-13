@@ -224,6 +224,72 @@ public class ValvePlannerTests
     }
 
     [Fact]
+    public void CreateValves_ShouldReuseOffcutsThroughFiveValveChain()
+    {
+        var order = new ValveOrder
+        {
+            Height = 1280,
+            Width = 2700,
+            Quantity = 5
+        };
+
+        var materialPool = new MaterialPool();
+
+        for (var i = 0; i < 12; i++)
+        {
+            materialPool.Add(new Blank
+            {
+                Height = 1280,
+                Length = 1200,
+                LeftEdge = EdgeType.Tongue,
+                RightEdge = EdgeType.Groove
+            });
+        }
+
+        var planner = new ValvePlanner(
+            new BlankPieceCutter(),
+            new ValveAssembler());
+
+        var results = planner.CreateValves(
+            order,
+            materialPool,
+            minimumOffcut: 300);
+
+        var expectedLengths = new[]
+        {
+            new[] { 1200, 1200, 300 },
+            new[] { 900, 1200, 600 },
+            new[] { 600, 1200, 900 },
+            new[] { 300, 1200, 1200 },
+            new[] { 1200, 1200, 300 }
+        };
+
+        Assert.Equal(5, results.Count);
+
+        for (var valveIndex = 0; valveIndex < expectedLengths.Length; valveIndex++)
+        {
+            var valve = results[valveIndex].Valve;
+
+            Assert.Equal(1280, valve.Height);
+            Assert.Equal(2700, valve.Width);
+            Assert.Equal(3, valve.Pieces.Count);
+
+            for (var pieceIndex = 0; pieceIndex < expectedLengths[valveIndex].Length; pieceIndex++)
+            {
+                Assert.Equal(
+                    expectedLengths[valveIndex][pieceIndex],
+                    valve.Pieces[pieceIndex].Length);
+            }
+        }
+
+        Assert.Single(materialPool.Blanks);
+        Assert.Equal(900, materialPool.Blanks[0].Length);
+        Assert.Equal(1280, materialPool.Blanks[0].Height);
+        Assert.Equal(EdgeType.Cut, materialPool.Blanks[0].LeftEdge);
+        Assert.Equal(EdgeType.Groove, materialPool.Blanks[0].RightEdge);
+    }
+
+    [Fact]
     public void CreateValve_ShouldDiscardOffcut_WhenItIsBelowMinimum()
     {
         var order = new ValveOrder
