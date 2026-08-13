@@ -45,6 +45,7 @@ public class PanelOptimizer : IPanelOptimizer
         var materialPool = new MaterialPool();
         var waste = new List<PanelOffcut>();
         var valves = new List<ValveAssemblyResult>();
+        var panelPlans = new List<PanelCutPlan>();
         var requiredPanels = 0;
 
         foreach (var order in orders)
@@ -79,6 +80,18 @@ public class PanelOptimizer : IPanelOptimizer
                         materialPool.Add(blank);
 
                     waste.AddRange(materialPlan.Waste);
+
+                    panelPlans.Add(new PanelCutPlan
+                    {
+                        PanelIndex = requiredPanels,
+                        PanelLength = panel.Length,
+                        PanelHeight = panel.Height,
+                        Blanks = cutResult.Blanks,
+                        RemainingLength = cutResult.Offcuts.Count == 0
+                            ? 0
+                            : cutResult.Offcuts[0].Height
+                    });
+
                     requiredPanels++;
                 }
 
@@ -93,6 +106,10 @@ public class PanelOptimizer : IPanelOptimizer
         {
             RequiredPanels = requiredPanels,
             Valves = valves,
+            CuttingPlan = new CuttingPlan
+            {
+                Panels = panelPlans
+            },
             Waste = waste
         };
     }
