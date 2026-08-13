@@ -1,0 +1,27 @@
+@using AGR_PanelOptimizer.Core.Models
+
+<div class="result-summary">
+    <h2>Результат расчета</h2>
+
+    <div class="summary-grid">
+        <div class="summary-item">
+            <span class="summary-label">Исходных панелей</span>
+            <strong>@Result.RequiredPanels</strong>
+        </div>
+
+        <div class="summary-item">
+            <span class="summary-label">Клапанов</span>
+            <strong>@Result.Valves.Count</strong>
+        </div>
+
+        <div class="summary-item">
+            <span class="summary-label">Отходов</span>
+            <strong>@Result.Waste.Count</strong>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public OptimizationResult Result { get; set; } = null!;
+}
