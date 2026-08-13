@@ -1,0 +1,61 @@
+@using AGR_PanelOptimizer.Core.Models
+
+<div class="valve-results">
+    <h2>Клапаны</h2>
+
+    @if (Results.Count == 0)
+    {
+        <p>Клапаны не были рассчитаны.</p>
+    }
+    else
+    {
+        @foreach (var (result, index) in Results.Select((result, index) => (result, index + 1)))
+        {
+            <section class="valve-result">
+                <div class="valve-result-header">
+                    <h3>Клапан №@index</h3>
+                    <span>@result.Valve.Width × @result.Valve.Height мм</span>
+                </div>
+
+                <h4>Заготовки</h4>
+
+                @if (result.Valve.Pieces.Count == 0)
+                {
+                    <p>Заготовки отсутствуют.</p>
+                }
+                else
+                {
+                    <div class="piece-list">
+                        @foreach (var piece in result.Valve.Pieces)
+                        {
+                            <div class="piece-item">
+                                <strong>@piece.Length × @piece.Height мм</strong>
+                                <span>Кромки: @piece.LeftEdge / @piece.RightEdge</span>
+                            </div>
+                        }
+                    </div>
+                }
+
+                @if (result.Valve.Waste.Count > 0)
+                {
+                    <h4>Отходы клапана</h4>
+
+                    <div class="piece-list">
+                        @foreach (var waste in result.Valve.Waste)
+                        {
+                            <div class="piece-item waste-item">
+                                <strong>@waste.Length × @waste.Height мм</strong>
+                                <span>Кромки: @waste.LeftEdge / @waste.RightEdge</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </section>
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<ValveAssemblyResult> Results { get; set; } = Array.Empty<ValveAssemblyResult>();
+}
