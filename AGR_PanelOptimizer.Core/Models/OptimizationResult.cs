@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace AGR_PanelOptimizer.Core.Models;
 
-namespace AGR_PanelOptimizer.Core.Models
+public class OptimizationResult
 {
-    public class OptimizationResult
-    {
-    }
+    public int RequiredPanels { get; init; }
+
+    public IReadOnlyList<ValveAssemblyResult> Valves { get; init; } = [];
+
+    public IReadOnlyList<PanelOffcut> Waste { get; init; } = [];
 }
