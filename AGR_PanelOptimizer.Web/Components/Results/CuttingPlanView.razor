@@ -28,7 +28,7 @@
                         <div class="blank-item">
                             <strong>Заготовка №@(blankIndex + 1): @blank.Length × @blank.Height мм</strong>
                             <span>Позиция №@(blankIndex + 1)</span>
-                            <span>Кромки: @blank.LeftEdge / @blank.RightEdge</span>
+                            <span>Кромки: @GetEdgeName(blank.LeftEdge) / @GetEdgeName(blank.RightEdge)</span>
                         </div>
                     }
                 </div>
@@ -44,4 +44,15 @@
 @code {
     [Parameter, EditorRequired]
     public CuttingPlan Plan { get; set; } = null!;
+
+    private static string GetEdgeName(Enum edge)
+    {
+        return Convert.ToInt32(edge) switch
+        {
+            0 => "Отрезано",
+            1 => "Шип",
+            2 => "Паз",
+            _ => edge.ToString()
+        };
+    }
 }
