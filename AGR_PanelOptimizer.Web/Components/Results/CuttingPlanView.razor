@@ -1,0 +1,8 @@
+@using AGR_PanelOptimizer.Core.Models
+
+<h2>Раскрой панелей</h2>
+
+@code {
+    [Parameter, EditorRequired]
+    public CuttingPlan Plan { get; set; } = null!;
+}
