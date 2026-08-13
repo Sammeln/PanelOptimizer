@@ -18,6 +18,27 @@ public class ValvePlanner
         _valveAssembler = valveAssembler;
     }
 
+    public IReadOnlyList<ValveAssemblyResult> CreateValves(
+        ValveOrder order,
+        MaterialPool materialPool,
+        int minimumOffcut)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+        ArgumentNullException.ThrowIfNull(materialPool);
+
+        if (order.Quantity <= 0)
+            throw new ArgumentOutOfRangeException(nameof(order.Quantity));
+
+        var results = new List<ValveAssemblyResult>(order.Quantity);
+
+        for (var i = 0; i < order.Quantity; i++)
+        {
+            results.Add(CreateValve(order, materialPool, minimumOffcut));
+        }
+
+        return results;
+    }
+
     public ValveAssemblyResult CreateValve(
         ValveOrder order,
         MaterialPool materialPool,
