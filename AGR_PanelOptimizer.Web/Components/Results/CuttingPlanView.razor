@@ -2,191 +2,195 @@
 @using AGR_PanelOptimizer.Core.Enums
 
 <div class="cutting-plan">
-    <h2>Раскрой панелей</h2>
+	<h2>Раскрой панелей</h2>
 
-    @for (var panelIndex = 0; panelIndex < Plan.Panels.Count; panelIndex++)
-    {
-        var panel = Plan.Panels[panelIndex];
+	@for (var panelIndex = 0; panelIndex < Plan.Panels.Count; panelIndex++)
+	{
+		var panel = Plan.Panels[panelIndex];
 
-            <section class="cutting-panel">
-                <div class="cutting-panel-header">
-                    <h3>Панель №@(panelIndex + 1)</h3>
-                    <span>@panel.PanelLength × @panel.PanelHeight мм</span>
-                </div>
+				<section class="cutting-panel">
+					<div class="cutting-panel-header">
+						<h3>Панель №@(panelIndex + 1)</h3>
+						<span>@panel.PanelLength × @panel.PanelHeight мм</span>
+					</div>
 
-                <div class="cutting-panel-info">
-                    <span>Заготовок: @panel.Blanks.Count</span>
-                    <span>Остаток: @panel.RemainingLength мм</span>
-                </div>
+					<div class="cutting-panel-info">
+						<span>Заготовок: @panel.Blanks.Count</span>
+						<span>Остаток: @panel.RemainingLength мм</span>
+					</div>
 
-            @if (panel.Blanks.Count > 0)
-            {
-                        <svg class="cutting-plan-svg"
-                             viewBox="0 0 1000 180"
-                             preserveAspectRatio="none"
-                             role="img"
-                             aria-label="Схема раскроя панели №@(panelIndex + 1)">
+			@if (panel.Blanks.Count > 0)
+			{
+			<svg class="cutting-plan-svg"
+					viewBox="0 0 1000 180"
+					preserveAspectRatio="none"
+					role="img"
+					aria-label="Схема раскроя панели №@(panelIndex + 1)">
+				<rect x="0"
+					  y="20"
+					  width="1000"
+					  height="120"
+					  fill="#f8f8f8"
+					  stroke="#999"
+					  stroke-width="2" />
 
-                            <rect x="0"
-                                  y="20"
-                                  width="1000"
-                                  height="120"
-                                  class="panel-background" />
+					@foreach (var item in GetBlankVisuals(panel))
+					{
+						<rect x="@item.X"
+							  y="20"
+							  width="@item.Width"
+							  height="120"
+							  fill="#dfeaf5"
+							  stroke="#333"
+							  stroke-width="2" />
 
-                    @foreach (var item in GetBlankVisuals(panel))
-                    {
-                                    <rect x="@item.X"
-                                          y="20"
-                                          width="@item.Width"
-                                          height="120"
-                                          class="blank-rectangle" />
+						@if (item.ShowLabel)
+						{
+							<foreignObject x="@item.X"
+											y="45"
+											width="@item.Width"
+											height="60">
+												<div class="blank-svg-label" style="color: #222;">
+									<div>№@item.Index</div>
+									<div>@item.Length × @item.Height</div>
+								</div>
+							</foreignObject>
+						}
+					}
+					
+					@if (panel.RemainingLength > 0)
+					{
+						var remainingX = GetUsedLength(panel) * 1000.0 / panel.PanelLength;
+						var remainingWidth = panel.RemainingLength * 1000.0 / panel.PanelLength;
 
-                        @if (item.ShowLabel)
-                        {
-                                            <foreignObject x="@item.X"
-                                                           y="45"
-                                                           width="@item.Width"
-                                                           height="60">
-                                                <div class="blank-svg-label">
-                                                    <div>№@item.Index</div>
-                                                    <div>@item.Length × @item.Height</div>
-                                                </div>
-                                            </foreignObject>
-                        }
-                    }
+			<line x1="0"
+				  y1="150"
+				  x2="1000"
+				  y2="150"
+				  stroke="#555"
+				  stroke-width="1" />
 
-                    @if (panel.RemainingLength > 0)
-                    {
-                        var remainingX = GetUsedLength(panel) * 1000.0 / panel.PanelLength;
-                        var remainingWidth = panel.RemainingLength * 1000.0 / panel.PanelLength;
+						@if (remainingWidth >= 90)
+						{
+															<foreignObject x="@remainingX"
+																		   y="50"
+																		   width="@remainingWidth"
+																		   height="50">
+																				<div class="remaining-svg-label" style="color: #555;">
+																	Остаток
+																</div>
+															</foreignObject>
+						}
+					}
 
-                                    <rect x="@remainingX"
-                                          y="20"
-                                          width="@Math.Max(remainingWidth, 2)"
-                                          height="120"
-                                          class="remaining-rectangle" />
+									<line x1="0"
+										  y1="150"
+										  x2="1000"
+										  y2="150"
+										  class="dimension-line" />
 
-                        @if (remainingWidth >= 90)
-                        {
-                                            <foreignObject x="@remainingX"
-                                                           y="50"
-                                                           width="@remainingWidth"
-                                                           height="50">
-                                                <div class="remaining-svg-label">
-                                                    Остаток
-                                                </div>
-                                            </foreignObject>
-                        }
-                    }
+									<foreignObject x="400"
+												   y="155"
+												   width="200"
+												   height="25">
+												<div class="dimension-svg-label" style="color: #555;">
+							@panel.PanelLength мм
+										</div>
+									</foreignObject>
 
-                            <line x1="0"
-                                  y1="150"
-                                  x2="1000"
-                                  y2="150"
-                                  class="dimension-line" />
+								</svg>
 
-                            <foreignObject x="400"
-                                           y="155"
-                                           width="200"
-                                           height="25">
-                                <div class="dimension-svg-label">
-                            @panel.PanelLength мм
-                                </div>
-                            </foreignObject>
+								<div class="blank-list">
+					@for (var blankIndex = 0; blankIndex < panel.Blanks.Count; blankIndex++)
+					{
+						var blank = panel.Blanks[blankIndex];
 
-                        </svg>
+												<div class="blank-item">
+													<strong>
+														Заготовка №@(blankIndex + 1):
+								@blank.Length × @blank.Height мм
+													</strong>
 
-                        <div class="blank-list">
-                    @for (var blankIndex = 0; blankIndex < panel.Blanks.Count; blankIndex++)
-                    {
-                        var blank = panel.Blanks[blankIndex];
+													<span>
+														Позиция №@(blankIndex + 1)
+													</span>
 
-                                    <div class="blank-item">
-                                        <strong>
-                                            Заготовка №@(blankIndex + 1):
-                                @blank.Length × @blank.Height мм
-                                        </strong>
-
-                                        <span>
-                                            Позиция №@(blankIndex + 1)
-                                        </span>
-
-                                        <span>
-                                            Кромки:
-                                @GetEdgeName(blank.LeftEdge) /
-                                @GetEdgeName(blank.RightEdge)
-                                        </span>
-                                    </div>
-                    }
-                        </div>
-            }
-            else
-            {
-                        <p>На панели нет заготовок.</p>
-            }
-            </section>
-    }
+													<span>
+														Кромки:
+								@GetEdgeName(blank.LeftEdge) /
+								@GetEdgeName(blank.RightEdge)
+													</span>
+												</div>
+					}
+								</div>
+			}
+			else
+			{
+								<p>На панели нет заготовок.</p>
+			}
+				</section>
+	}
 </div>
 
 @code {
-    [Parameter, EditorRequired]
-    public CuttingPlan Plan { get; set; } = null!;
+	[Parameter, EditorRequired]
+	public CuttingPlan Plan { get; set; } = null!;
 
-    private static string GetEdgeName(EdgeType edge)
-    {
-        return edge switch
-        {
-            EdgeType.Tongue => "Шип",
-            EdgeType.Groove => "Паз",
-            EdgeType.Cut => "Отрезано",
-            _ => edge.ToString()
-        };
-    }
+	private static string GetEdgeName(EdgeType edge)
+	{
+		return edge switch
+		{
+			EdgeType.Tongue => "Шип",
+			EdgeType.Groove => "Паз",
+			EdgeType.Cut => "Отрезано",
+			_ => edge.ToString()
+		};
+	}
 
-    private static double GetUsedLength(PanelCutPlan panel)
-    {
-        return panel.Blanks.Sum(x => x.Length);
-    }
+	private static double GetUsedLength(PanelCutPlan panel)
+	{
+		return panel.Blanks.Sum(x => x.Length);
+	}
 
-    private static IReadOnlyList<BlankVisual> GetBlankVisuals(PanelCutPlan panel)
-    {
-        var result = new List<BlankVisual>();
-        var currentX = 0.0;
-        var scale = 1000.0 / panel.PanelLength;
+	private static IReadOnlyList<BlankVisual> GetBlankVisuals(PanelCutPlan panel)
+	{
+		var result = new List<BlankVisual>();
+		var currentX = 0.0;
+		var scale = 1000.0 / panel.PanelLength;
 
-        for (var index = 0; index < panel.Blanks.Count; index++)
-        {
-            var blank = panel.Blanks[index];
-            var width = blank.Length * scale;
+		for (var index = 0; index < panel.Blanks.Count; index++)
+		{
+			var blank = panel.Blanks[index];
+			var width = blank.Length * scale;
 
-            result.Add(new BlankVisual
-                {
-                    Index = index + 1,
-                    X = currentX,
-                    Width = Math.Max(width, 2),
-                    Length = blank.Length,
-                    Height = blank.Height,
-                    ShowLabel = width >= 90
-                });
+			result.Add(new BlankVisual
+				{
+					Index = index + 1,
+					X = currentX,
+					Width = Math.Max(width, 2),
+					Length = blank.Length,
+					Height = blank.Height,
+					ShowLabel = width >= 90
+				});
 
-            currentX += width;
-        }
+			currentX += width;
+		}
 
-        return result;
-    }
+		return result;
+	}
 
-    private sealed class BlankVisual
-    {
-        public int Index { get; init; }
+	private sealed class BlankVisual
+	{
+		public int Index { get; init; }
 
-        public double X { get; init; }
+		public double X { get; init; }
 
-        public double Width { get; init; }
+		public double Width { get; init; }
 
-        public int Length { get; init; }
+		public int Length { get; init; }
 
-        public int Height { get; init; }
+		public int Height { get; init; }
 
-        public bool ShowLabel { get; init; }
-    }
+		public bool ShowLabel { get; init; }
+	}
 }
