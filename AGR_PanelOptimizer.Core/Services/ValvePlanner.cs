@@ -63,14 +63,17 @@ public class ValvePlanner
 
         var pieces = new List<Piece>();
         var remainingWidth = order.Width;
+        var blankIndex = 0;
 
-        foreach (var blank in materialPool.Blanks.ToArray())
+        while (remainingWidth > 0 && blankIndex < materialPool.Blanks.Count)
         {
-            if (remainingWidth == 0)
-                break;
+            var blank = materialPool.Blanks[blankIndex];
 
             if (blank.Height != order.Height)
+            {
+                blankIndex++;
                 continue;
+            }
 
             var requiredLength = Math.Min(
                 blank.Length,
@@ -87,8 +90,9 @@ public class ValvePlanner
             if (remainingPiece is not null &&
                 remainingPiece.Length >= minimumOffcut)
             {
-                // Пригодный остаток возвращаем в пул как новую заготовку.
-                materialPool.Add(new Blank
+                // Пригодный остаток возвращаем на место исходной заготовки,
+                // чтобы сохранить физический порядок материала.
+                materialPool.Insert(blankIndex, new Blank
                 {
                     Length = remainingPiece.Length,
                     Height = remainingPiece.Height,
@@ -96,6 +100,10 @@ public class ValvePlanner
                     RightEdge = remainingPiece.RightEdge,
                     SourcePanelPosition = blank.SourcePanelPosition
                 });
+
+                // Остаток предназначен для следующего клапана и не может
+                // снова использоваться при сборке текущего клапана.
+                blankIndex++;
             }
 
             remainingWidth -= requiredPiece.Length;
