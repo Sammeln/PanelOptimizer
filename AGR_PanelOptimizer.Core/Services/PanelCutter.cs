@@ -5,6 +5,10 @@ namespace AGR_PanelOptimizer.Core.Services;
 
 public class PanelCutter
 {
+    public PanelCutter()
+    {
+        
+    }
     public PanelCutResult Cut(Panel panel, int blankHeight)
     {
         if (blankHeight <= 0)

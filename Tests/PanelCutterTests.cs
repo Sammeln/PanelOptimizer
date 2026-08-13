@@ -15,7 +15,7 @@ public class PanelCutterTests
             Height = 1200
         };
 
-        var cutter = new PanelCutter();
+        PanelCutter cutter = new();
 
         var result = cutter.Cut(panel, 1280);
 
@@ -47,7 +47,7 @@ public class PanelCutterTests
             Height = 1200
         };
 
-        var cutter = new PanelCutter();
+        PanelCutter cutter = new();
 
         var result = cutter.Cut(panel, 1200);
 
