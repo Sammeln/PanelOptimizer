@@ -1,6 +1,23 @@
 @using AGR_PanelOptimizer.Core.Models
 
-<h2>Раскрой панелей</h2>
+<div class="cutting-plan">
+    <h2>Раскрой панелей</h2>
+
+    @for (var panelIndex = 0; panelIndex < Plan.Panels.Count; panelIndex++)
+    {
+        var panel = Plan.Panels[panelIndex];
+
+        <section class="cutting-panel">
+            <h3>Панель №@(panelIndex + 1)</h3>
+            <span>@panel.PanelLength × @panel.PanelHeight мм</span>
+
+            <div>
+                <span>Заготовок: @panel.Blanks.Count</span>
+                <span>Остаток: @panel.RemainingLength мм</span>
+            </div>
+        </section>
+    }
+</div>
 
 @code {
     [Parameter, EditorRequired]
