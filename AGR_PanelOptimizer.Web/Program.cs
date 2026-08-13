@@ -1,6 +1,6 @@
 using AGR_PanelOptimizer.Web.Components;
 using AGR_PanelOptimizer.Core.Interfaces;
-using AGR_PanelOptimizer.Core.Services; 
+using AGR_PanelOptimizer.Core.Services;
 
 namespace AGR_PanelOptimizer.Web
 {
@@ -10,22 +10,21 @@ namespace AGR_PanelOptimizer.Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
-
-
             builder.Services.AddScoped<IPanelOptimizer, PanelOptimizer>();
-
+            builder.Services.AddScoped<PanelCutter>();
+            builder.Services.AddScoped<OrderMaterialPlanner>();
+            builder.Services.AddScoped<ValvePlanner>();
+            builder.Services.AddScoped<BlankPieceCutter>();
+            builder.Services.AddScoped<ValveAssembler>();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
