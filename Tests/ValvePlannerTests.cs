@@ -73,29 +73,16 @@ public class ValvePlannerTests
 
         var materialPool = new MaterialPool();
 
-        materialPool.Add(new Blank
+        for (var i = 0; i < 3; i++)
         {
-            Height = 1280,
-            Length = 1200,
-            LeftEdge = EdgeType.Tongue,
-            RightEdge = EdgeType.Groove
-        });
-
-        materialPool.Add(new Blank
-        {
-            Height = 1280,
-            Length = 1200,
-            LeftEdge = EdgeType.Tongue,
-            RightEdge = EdgeType.Groove
-        });
-
-        materialPool.Add(new Blank
-        {
-            Height = 1280,
-            Length = 1200,
-            LeftEdge = EdgeType.Tongue,
-            RightEdge = EdgeType.Groove
-        });
+            materialPool.Add(new Blank
+            {
+                Height = 1280,
+                Length = 1200,
+                LeftEdge = EdgeType.Tongue,
+                RightEdge = EdgeType.Groove
+            });
+        }
 
         var planner = new ValvePlanner(
             new BlankPieceCutter(),
@@ -113,10 +100,10 @@ public class ValvePlannerTests
         Assert.Equal(600, firstValve.Valve.Pieces[2].Length);
 
         Assert.Single(materialPool.Blanks);
-        Assert.Equal(600, materialPool.Blanks.Last().Length);
-        Assert.Equal(1280, materialPool.Blanks.Last().Height);
-        Assert.Equal(EdgeType.Cut, materialPool.Blanks.Last().LeftEdge);
-        Assert.Equal(EdgeType.Groove, materialPool.Blanks.Last().RightEdge);
+        Assert.Equal(600, materialPool.Blanks[0].Length);
+        Assert.Equal(1280, materialPool.Blanks[0].Height);
+        Assert.Equal(EdgeType.Cut, materialPool.Blanks[0].LeftEdge);
+        Assert.Equal(EdgeType.Groove, materialPool.Blanks[0].RightEdge);
 
         materialPool.Add(new Blank
         {
@@ -145,6 +132,51 @@ public class ValvePlannerTests
         Assert.Equal(1200, secondValve.Valve.Pieces[2].Length);
 
         Assert.Empty(materialPool.Blanks);
+    }
+
+    [Fact]
+    public void CreateValve_ShouldKeepOffcutAtOriginalPosition()
+    {
+        var order = new ValveOrder
+        {
+            Height = 1280,
+            Width = 1800,
+            Quantity = 1
+        };
+
+        var materialPool = new MaterialPool();
+
+        for (var i = 0; i < 3; i++)
+        {
+            materialPool.Add(new Blank
+            {
+                Height = 1280,
+                Length = 1200,
+                LeftEdge = EdgeType.Tongue,
+                RightEdge = EdgeType.Groove
+            });
+        }
+
+        var planner = new ValvePlanner(
+            new BlankPieceCutter(),
+            new ValveAssembler());
+
+        var result = planner.CreateValve(
+            order,
+            materialPool,
+            minimumOffcut: 300);
+
+        Assert.Equal(1800, result.Valve.Width);
+        Assert.Equal(2, result.Valve.Pieces.Count);
+        Assert.Equal(1200, result.Valve.Pieces[0].Length);
+        Assert.Equal(600, result.Valve.Pieces[1].Length);
+
+        Assert.Equal(2, materialPool.Blanks.Count);
+        Assert.Equal(600, materialPool.Blanks[0].Length);
+        Assert.Equal(1280, materialPool.Blanks[0].Height);
+        Assert.Equal(EdgeType.Cut, materialPool.Blanks[0].LeftEdge);
+        Assert.Equal(EdgeType.Groove, materialPool.Blanks[0].RightEdge);
+        Assert.Equal(1200, materialPool.Blanks[1].Length);
     }
 
     [Fact]
