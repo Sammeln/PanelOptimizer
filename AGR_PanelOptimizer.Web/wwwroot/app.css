@@ -318,3 +318,153 @@ th {
     .blank-item span {
         color: #555;
     }
+
+/* Сводка результатов */
+
+.result-summary {
+    margin-top: 32px;
+    margin-bottom: 20px;
+    padding: 24px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+    .result-summary h2,
+    .valve-results h2,
+    .waste-results h2,
+    .cutting-plan h2 {
+        margin: 0 0 16px;
+        font-size: 20px;
+    }
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.summary-item {
+    padding: 16px;
+    background: #f8f8f8;
+    border: 1px solid #e5e5e5;
+    border-radius: 5px;
+}
+
+.summary-label {
+    display: block;
+    margin-bottom: 6px;
+    color: #666;
+    font-size: 13px;
+}
+
+.summary-item strong {
+    font-size: 24px;
+}
+
+/* Результаты клапанов */
+
+.valve-results {
+    margin-top: 32px;
+}
+
+.valve-result {
+    margin-bottom: 20px;
+    padding: 24px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.valve-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 20px;
+}
+
+    .valve-result-header h3 {
+        margin: 0;
+        font-size: 18px;
+    }
+
+    .valve-result-header span {
+        color: #555;
+        font-size: 14px;
+    }
+
+.valve-result h4 {
+    margin: 0 0 10px;
+    font-size: 15px;
+}
+
+.piece-list,
+.waste-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.piece-item,
+.waste-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 10px 12px;
+    background: #f8f8f8;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+}
+
+    .piece-item span,
+    .waste-item span {
+        color: #555;
+        font-size: 14px;
+    }
+
+/* Общие отходы */
+
+.waste-results {
+    margin-top: 32px;
+    margin-bottom: 32px;
+    padding: 24px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.waste-item {
+    background: #fafafa;
+}
+
+/* Адаптация интерфейса для узких экранов */
+
+@media (max-width: 800px) {
+    .page-container {
+        padding: 20px;
+    }
+
+    .settings-grid,
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cutting-panel-header,
+    .valve-result-header,
+    .piece-item,
+    .waste-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .blank-item {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+        .blank-item strong {
+            min-width: 0;
+        }
+}
