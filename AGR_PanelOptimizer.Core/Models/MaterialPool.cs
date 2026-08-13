@@ -15,6 +15,16 @@ public class MaterialPool
         _blanks.Add(blank);
     }
 
+    public void Insert(int index, Blank blank)
+    {
+        ArgumentNullException.ThrowIfNull(blank);
+
+        if (index < 0 || index > _blanks.Count)
+            throw new ArgumentOutOfRangeException(nameof(index));
+
+        _blanks.Insert(index, blank);
+    }
+
     public bool Remove(Blank blank)
     {
         ArgumentNullException.ThrowIfNull(blank);
