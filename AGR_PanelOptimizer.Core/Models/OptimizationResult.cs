@@ -6,5 +6,7 @@ public class OptimizationResult
 
     public IReadOnlyList<ValveAssemblyResult> Valves { get; init; } = [];
 
+    public CuttingPlan CuttingPlan { get; init; } = new();
+
     public IReadOnlyList<PanelOffcut> Waste { get; init; } = [];
 }
