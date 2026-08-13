@@ -8,13 +8,35 @@
         var panel = Plan.Panels[panelIndex];
 
         <section class="cutting-panel">
-            <h3>Панель №@(panelIndex + 1)</h3>
-            <span>@panel.PanelLength × @panel.PanelHeight мм</span>
+            <div class="cutting-panel-header">
+                <h3>Панель №@(panelIndex + 1)</h3>
+                <span>@panel.PanelLength × @panel.PanelHeight мм</span>
+            </div>
 
-            <div>
+            <div class="cutting-panel-info">
                 <span>Заготовок: @panel.Blanks.Count</span>
                 <span>Остаток: @panel.RemainingLength мм</span>
             </div>
+
+            @if (panel.Blanks.Count > 0)
+            {
+                <div class="blank-list">
+                    @for (var blankIndex = 0; blankIndex < panel.Blanks.Count; blankIndex++)
+                    {
+                        var blank = panel.Blanks[blankIndex];
+
+                        <div class="blank-item">
+                            <strong>Заготовка №@(blankIndex + 1): @blank.Length × @blank.Height мм</strong>
+                            <span>Позиция №@(blankIndex + 1)</span>
+                            <span>Кромки: @blank.LeftEdge / @blank.RightEdge</span>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p>На панели нет заготовок.</p>
+            }
         </section>
     }
 </div>
