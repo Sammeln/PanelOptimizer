@@ -1,3 +1,4 @@
+@using AGR_PanelOptimizer.Core.Enums
 @using AGR_PanelOptimizer.Core.Models
 
 <div class="valve-results">
@@ -5,52 +6,60 @@
 
     @if (Results.Count == 0)
     {
-        <p>Клапаны не были рассчитаны.</p>
+            <p>Клапаны не были рассчитаны.</p>
     }
     else
     {
         @foreach (var (result, index) in Results.Select((result, index) => (result, index + 1)))
         {
-            <section class="valve-result">
-                <div class="valve-result-header">
-                    <h3>Клапан №@index</h3>
-                    <span>@result.Valve.Width × @result.Valve.Height мм</span>
-                </div>
+                    <section class="valve-result">
+                        <div class="valve-result-header">
+                            <h3>Клапан №@index</h3>
+                            <span>@result.Valve.Width × @result.Valve.Height мм</span>
+                        </div>
 
-                <h4>Заготовки</h4>
+                        <h4>Заготовки</h4>
 
                 @if (result.Valve.Pieces.Count == 0)
                 {
-                    <p>Заготовки отсутствуют.</p>
+                                <p>Заготовки отсутствуют.</p>
                 }
                 else
                 {
-                    <div class="piece-list">
-                        @foreach (var piece in result.Valve.Pieces)
+                                <div class="piece-list">
+                        @foreach (var (piece, pieceIndex) in result.Valve.Pieces.Select((piece, index) => (piece, index + 1)))
                         {
-                            <div class="piece-item">
-                                <strong>@piece.Length × @piece.Height мм</strong>
-                                <span>Кромки: @piece.LeftEdge / @piece.RightEdge</span>
-                            </div>
+                                            <div class="piece-item">
+                                                <strong>
+                                                    Заготовка №@pieceIndex: @piece.Length × @piece.Height мм
+                                                </strong>
+
+                                                <span>
+                                                    Кромки: @FormatEdge(piece.LeftEdge) / @FormatEdge(piece.RightEdge)
+                                                </span>
+                                            </div>
                         }
-                    </div>
+                                </div>
                 }
 
                 @if (result.Valve.Waste.Count > 0)
                 {
-                    <h4>Отходы клапана</h4>
+                                <h4>Отходы клапана</h4>
 
-                    <div class="piece-list">
+                                <div class="piece-list">
                         @foreach (var waste in result.Valve.Waste)
                         {
-                            <div class="piece-item waste-item">
-                                <strong>@waste.Length × @waste.Height мм</strong>
-                                <span>Кромки: @waste.LeftEdge / @waste.RightEdge</span>
-                            </div>
+                                            <div class="piece-item waste-item">
+                                                <strong>@waste.Length × @waste.Height мм</strong>
+
+                                                <span>
+                                                    Кромки: @FormatEdge(waste.LeftEdge) / @FormatEdge(waste.RightEdge)
+                                                </span>
+                                            </div>
                         }
-                    </div>
+                                </div>
                 }
-            </section>
+                    </section>
         }
     }
 </div>
@@ -58,4 +67,15 @@
 @code {
     [Parameter, EditorRequired]
     public IReadOnlyList<ValveAssemblyResult> Results { get; set; } = Array.Empty<ValveAssemblyResult>();
+
+    private static string FormatEdge(EdgeType edge)
+    {
+        return edge switch
+        {
+            EdgeType.Tongue => "Шип",
+            EdgeType.Groove => "Паз",
+            EdgeType.Cut => "Отрезано",
+            _ => edge.ToString()
+        };
+    }
 }
