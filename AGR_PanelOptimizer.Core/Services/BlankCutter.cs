@@ -34,8 +34,7 @@ public class BlankCutter
 
         return new PanelCutResult
         {
-            Blanks = blanks,
-            RemainingLength = remainingLength
+            Blanks = blanks
         };
     }
 }

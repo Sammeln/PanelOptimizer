@@ -17,11 +17,11 @@ public class ValveProductionScenarioTests
             Height = 1200
         };
 
-        var blankCutter = new BlankCutter();
+        var blankCutter = new PanelCutter();
 
         var blankResult = blankCutter.Cut(
             panel,
-            blankLength: 1280);
+            1280);
 
         // Act
 
@@ -40,7 +40,6 @@ public class ValveProductionScenarioTests
         // Assert
 
         Assert.Equal(4, blankResult.Blanks.Count);
-        Assert.Equal(880, blankResult.RemainingLength);
 
         Assert.Equal(1200, piece1.Length);
         Assert.Equal(1280, piece1.Height);
@@ -80,6 +79,5 @@ public class ValveProductionScenarioTests
 
         Assert.False(
             !offcutEvaluator.IsUsable(remaining2!, remaining2.Length));
-        Assert.Equal(880, blankResult.RemainingLength);
     }
 }

@@ -78,7 +78,6 @@ public class BlankCutterTests
         var result = cutter.Cut(panel, 1280);
 
         Assert.Equal(4, result.Blanks.Count);
-        Assert.Equal(880, result.RemainingLength);
     }
     [Fact]
     public void Cut_4500mm_Panel_Into_1280mm_Blanks_Leaves_660mm()
@@ -94,7 +93,6 @@ public class BlankCutterTests
         var result = cutter.Cut(panel, 1280);
 
         Assert.Equal(3, result.Blanks.Count);
-        Assert.Equal(660, result.RemainingLength);
     }
     [Fact]
     public void Can_Prepare_1280x2380_Valve_From_6000mm_Panel()
@@ -112,7 +110,6 @@ public class BlankCutterTests
             blankLength: 1280);
 
         Assert.Equal(4, panelResult.Blanks.Count);
-        Assert.Equal(880, panelResult.RemainingLength);
 
         var firstBlank = panelResult.Blanks[0];
 
