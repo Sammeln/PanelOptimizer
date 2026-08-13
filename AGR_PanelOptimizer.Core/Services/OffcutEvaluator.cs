@@ -13,4 +13,14 @@ public class OffcutEvaluator
 
         return piece.Length >= minimumLength;
     }
+
+    public bool IsUsable(
+        PanelOffcut offcut,
+        IReadOnlyCollection<ValveOrder> orders)
+    {
+        ArgumentNullException.ThrowIfNull(offcut);
+        ArgumentNullException.ThrowIfNull(orders);
+
+        return orders.Any(order => order.Height == offcut.Height);
+    }
 }
